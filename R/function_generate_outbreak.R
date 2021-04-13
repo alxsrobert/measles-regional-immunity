@@ -163,7 +163,6 @@ generate_sim <- function(w_dens, cov, area, pop, distance_matrix,
     new_en_av <- R0_en_reg
     if(!is.list(wji)) new_ne_av <- R0_ne_reg * ((cases_tot * wji) %>% colSums()) else
       new_ne_av <- R0_ne_reg * ((cases_tot * wji[[i-1]]) %>% colSums())
-    if(i == length(weeks_sim)) browser()
     # Draw the number of cases at time_i per region
     n_cases[i,] <- sapply(new_en_av + new_ar_av + new_ne_av, function(X)
       rnbinom(1, mu = X, size = params["overdisp"]))
