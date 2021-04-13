@@ -93,9 +93,9 @@ generate_sim <- function(w_dens, cov, area, pop, distance_matrix,
     t <- t + 1
     time_i <- rownames(n_cases)[i]
     # Update the value of the covariates
-    cov_i <- cov[t + 1, ]
-    area_i <- area[t + 1,]
-    pop_i <- pop[t + 1,]
+    cov_i <- cov[as.character(time_i), ]
+    area_i <- area[as.character(time_i),]
+    pop_i <- pop[as.character(time_i),]
 
     ## Compute the level of recent transmission:
     if(as.Date(time_i) - as.Date(weeks_sim[1]) > 30){
@@ -163,6 +163,7 @@ generate_sim <- function(w_dens, cov, area, pop, distance_matrix,
     new_en_av <- R0_en_reg
     if(!is.list(wji)) new_ne_av <- R0_ne_reg * ((cases_tot * wji) %>% colSums()) else
       new_ne_av <- R0_ne_reg * ((cases_tot * wji[[i-1]]) %>% colSums())
+    if(i == length(weeks_sim)) browser()
     # Draw the number of cases at time_i per region
     n_cases[i,] <- sapply(new_en_av + new_ar_av + new_ne_av, function(X)
       rnbinom(1, mu = X, size = params["overdisp"]))
