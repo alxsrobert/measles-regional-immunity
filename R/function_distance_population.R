@@ -2,7 +2,7 @@ importation_distance <- function(regs, neighbours = F){
   if(neighbours == F){
     ## Set distance data set (each element = distance row-column)
     # Import population centroid file, generated with function_centroid.R
-    loc_centroid <- readRDS(file = "Data/location_centrois.RDS")
+    loc_centroid <- readRDS(file = "Data/location_centroids.RDS")
     # Keep only regions of interest
     loc_centroid <- loc_centroid[is.element(nuts3, regs),]
     loc_centroid <- loc_centroid[!duplicated(rownames(loc_centroid)),]
