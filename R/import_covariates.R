@@ -11,6 +11,7 @@ source("R/function_generate_all_outbreaks.R")
 source("R/function_exp_gravity.R")
 source("R/function_report_rate.R")
 source("R/function_prepare_data_hhh4.R")
+source("R/function_interpret_control_daily.R")
 source("R/function_analysis_hhh4.R")
 
 # Import data table linking region nb and region id 
