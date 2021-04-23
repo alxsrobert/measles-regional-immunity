@@ -7,9 +7,7 @@ function_hhh4_daily <- function(pop_mat, area_mat, cov_mat, list_all_sim,
   list_models <- list()
   ## Run each model
   for(i in seq_len(n_sim)){
-    # Apply report rate
-    data_i <- report_rate(data = list_all_sim[[1]][[i]], 
-                          report_rate = report_rate)
+    data_i <- list_all_sim[[1]][[i]]
     # Generate the list of data needed to run the hhh4 models
     data_list <- prep_data(data = data_i, pop_mat = pop_mat, 
                            area_mat = area_mat, cov_mat = cov_mat, day = T, 
@@ -57,9 +55,7 @@ function_hhh4_aggreg <- function(pop_mat, area_mat, cov_mat, list_all_sim,
   all_weeks <- as.Date(rownames(list_all_sim[[1]][[1]]))
   ## Run each model
   for(i in seq_len(n_sim)){
-    # Apply report rate
-    data_i <- report_rate(data = list_all_sim[[1]][[i]], 
-                          report_rate = report_rate)
+    data_i <- list_all_sim[[1]][[i]]
     ## Aggregate the data
     # Extract the first date of the dataset
     min_date <- min(rownames(data_i))
