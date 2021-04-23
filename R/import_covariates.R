@@ -13,6 +13,8 @@ source("R/function_report_rate.R")
 source("R/function_prepare_data_hhh4.R")
 source("R/function_interpret_control_daily.R")
 source("R/function_analysis_hhh4.R")
+# Functions to generate the plots
+source("R/function_figures.R")
 
 # Import data table linking region nb and region id 
 corres <- data.table(read.csv2(file = "Data/nuts_to_dep.csv", sep = ",", 
