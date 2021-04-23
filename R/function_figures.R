@@ -4,7 +4,6 @@ transp <- function(col, alpha=.5){
     rgb(c[1]/255, c[2]/255, c[3]/255, alpha))
   return(res)
 }
-
 # Function to compute the difference mean estimates - parameters
 distance_params <- function(list_all_sim, hhh4_runs){
   # Extract the parameters used to generate the simulations
@@ -45,7 +44,7 @@ in_CI <- function(list_all_sim, hhh4_runs, CI = 0.95){
   } 
   return(in_CI_mat)
 }
-# Function to compute the pit values 
+# Function to compute the pit histogram of the parameters
 pit_param <- function(list_all_sim, hhh4_runs){
   # Extract the parameters used to generate the simulations
   params_mat <- list_all_sim$params_sim
@@ -90,24 +89,29 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
   pit_i_agg <- pit_param(list_all_sim = list_all_sim, hhh4_runs = hhh4_agg)
   # Histograms of the proportion of parameters within the confidence interval
   par(mfrow = c(2,1), mar = c(3,4,2,0), bty = "l")
-  hist(rowSums(CI_day)/ncol(CI_day), main = "")
-  hist(rowSums(CI_agg)/ncol(CI_agg), main = "")
+  hist(rowSums(CI_day)/ncol(CI_day), main = "", breaks = seq(0, 1, 0.025), 
+       xlab = "")
+  abline(v = .95, col = "red", lwd = 2, lty = 2)
+  hist(rowSums(CI_agg)/ncol(CI_agg), main = "", breaks = seq(0, 1, 0.025), 
+       xlab = "")
+  abline(v = .95, col = "red", lwd = 2, lty = 2)
+  
   ## For each parameter listed in which_plot, generate 3 figures:
   # 1- The density plot of the difference between estimates and parameter 
   # 2- Density plots of the mean of the parameter (with data)
   # 3- pit histogram of the figure
-  par(mfrow = c(min(c(5, length(which_plot))),3), mar = c(5, 5, 1, 1), las = 1, 
+  par(mfrow = c(min(c(3, length(which_plot))),3), mar = c(5, 5, 1, 1), las = 1, 
       bty ="l", cex.axis = 1.1, cex.main = 1.5, cex.lab = 1.5)
   for(i in seq_along(which_plot)){
     param_i <- which_plot[i]
-    # Generate density plots
+    # Generate density objects
     dens_dis_day <- density(dist_day[param_i,], na.rm = T)
     dens_dis_agg <- density(dist_agg[param_i,], na.rm = T)
     # Initialise empty plot
     plot(dens_dis_agg, col = "white", xlab = "", ylab = "", 
          main = colnames(list_all_sim$params_sim)[param_i], 
          ylim = c(0, max(c(dens_dis_agg$y, dens_dis_day$y))),
-         xlim = c(min(c(dens_dis_agg$x, dens_dis_day$x)),
+         xlim = c(max(-3, min(c(dens_dis_agg$x, dens_dis_day$x))),
                   max(c(dens_dis_agg$x, dens_dis_day$x))))
     # Add density plots
     polygon(dens_dis_day, col=transp("#fc8d59", .3), border=NA)
@@ -125,15 +129,18 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
     plot(dens_agg, col = "white", xlab = "", ylab = "", 
          main = colnames(list_all_sim$params_sim)[param_i], 
          ylim = c(0, max(c(dens_day$y, dens_data$y, dens_agg$y))),
-         xlim = c(min(c(dens_agg$x, dens_day$x, dens_data$x)), 
+         xlim = c(max(c(min(c(dens_agg$x, dens_day$x, dens_data$x)), -3)), 
                   max(c(dens_agg$x, dens_day$x, dens_data$x))))
     # Add density plots
     polygon(dens_data, col=transp("black", .3), border=NA)
     polygon(dens_day, col=transp("#fc8d59", .3), border=NA)
     polygon(dens_agg, col=transp("#91bfdb", .3), border=NA)
+    abline(v = 0, lty = 2, lwd = 2)
     # Generate histograms
     hist_day <- hist(pit_i_day[param_i,], breaks = seq(0,1, .1), plot = F)
     hist_agg <- hist(pit_i_agg[param_i,], breaks = seq(0,1, .1), plot = F)
+    hist_day$counts <- hist_day$density
+    hist_agg$counts <- hist_agg$density
     plot(hist_day, col = transp("#fc8d59", .3), ylab = "", border = NA,
          main = colnames(list_all_sim$params_sim)[param_i], 
          xlab = "", ylim = c(0, max(c(hist_day$counts, hist_agg$counts))))
