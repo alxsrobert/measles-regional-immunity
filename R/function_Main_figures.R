@@ -221,7 +221,6 @@ figure_3 <- function(model, map){
     terms_model$terms[[1, j]] <- terms_model$terms[[1, j]] * 0
   # Compute the values of the predictors at each iteration
   mean_model <- meanHHH(coef(model), terms_model)
-  map$nuts3 <- as.character(map$nuts3)
   ### Values of the endemic predictor
   map$type <- "Endemic"
   # Extract the value of the endemic predictor from mean_model
@@ -309,20 +308,22 @@ figure_5_6 <- function(list_sim, model, map, which_dates, breaks,
       return(colSums(Y[which_dates,]))) %>% 
         unlist, nrow = length(X), byrow = T)
     colnames(n_per_region_X) <- colnames(model$stsObj@observed)
-    
     # Initialise the three maps (per element in thresh_cases)
     map_X1 <- map_X2 <- map_X3 <- map
     ## For each region, compute the proportion of simulation where the number 
     ## of cases was above:
     # -thresh_cases[1]
     map_X1$sup_thresh <- 100 * 
-      colSums(n_per_region_X >= thresh_cases[1])[map_X1$nuts3]/nrow(n_per_region_X)
+      colSums(n_per_region_X >= thresh_cases[1])[as.character(map_X1$nuts3)]/
+      nrow(n_per_region_X)
     # -thresh_cases[2]
     map_X2$sup_thresh <- 100 * 
-      colSums(n_per_region_X >= thresh_cases[2])[map_X2$nuts3]/nrow(n_per_region_X)
+      colSums(n_per_region_X >= thresh_cases[2])[as.character(map_X2$nuts3)]/
+      nrow(n_per_region_X)
     # -thresh_cases[3]
     map_X3$sup_thresh <- 100 * 
-      colSums(n_per_region_X >= thresh_cases[3])[map_X3$nuts3]/nrow(n_per_region_X)
+      colSums(n_per_region_X >= thresh_cases[3])[as.character(map_X3$nuts3)]/
+      nrow(n_per_region_X)
     # Turn the proportion of simulations into categories, defined in "breaks"
     map_X1$cat_thresh <- cut(map_X1$sup_thresh, breaks = breaks, labels = labs)
     map_X2$cat_thresh <- cut(map_X2$sup_thresh, breaks = breaks, labels = labs)
@@ -344,7 +345,6 @@ figure_5_6 <- function(list_sim, model, map, which_dates, breaks,
   # If a particular order was given, format the column "type" as a factor
   if(!is.null(order_reg))
     map_tot$type <- factor(map_tot$type, levels = name_elements[order_reg])
-  
   # Generate plot
   p_cases <- ggplot(map_tot) +  geom_sf(aes(fill = cat_thresh)) + 
     facet_grid(type~cat) +
@@ -366,6 +366,6 @@ figure_5_6 <- function(list_sim, model, map, which_dates, breaks,
       geom_point(data = map_tot, aes(x = long_imp, y = lat_imp), size = 2) 
   }
   
-  plot(p_cases)
+  return(p_cases)
 }
 
