@@ -1,6 +1,6 @@
 function_hhh4_daily <- function(pop_mat, area_mat, cov_mat, list_all_sim, 
                                 distance_matrix, prop_gen1, mean_si, sd_si,
-                                max_si, report_rate, thresh = 45){
+                                max_si, fun_wei, thresh = NA){
   # Extract the number of simulations in list_all_sim
   n_sim <- length(list_all_sim$sim)
   # intialise list of all models
@@ -27,7 +27,7 @@ function_hhh4_daily <- function(pop_mat, area_mat, cov_mat, list_all_sim,
                                         area_mat, period = 365)),
       ne = list(f = addSeason2formula(~1 + unvax  + cat1 + cat2 + pop_mat 
                                       , period = 365),
-                weights = W_exp_gravity()), 
+                weights = fun_wei()), 
       data = list(unvax = log(data_list$unvax_ts), 
                   cat1 = data_list$cat_incidence1,
                   cat2 = data_list$cat_incidence2, 
@@ -46,8 +46,8 @@ function_hhh4_daily <- function(pop_mat, area_mat, cov_mat, list_all_sim,
 }
 
 function_hhh4_aggreg <- function(pop_mat, area_mat, cov_mat, list_all_sim, 
-                                 distance_matrix, prop_gen1, report_rate, 
-                                 thresh = 45, len_agg = 10){
+                                 distance_matrix, prop_gen1, fun_wei, 
+                                 thresh = NA, len_agg = 10){
   # Extract the number of simulations in list_all_sim
   n_sim <- length(list_all_sim$sim)
   # intialise list of all models
@@ -89,7 +89,7 @@ function_hhh4_aggreg <- function(pop_mat, area_mat, cov_mat, list_all_sim,
                                         area_mat, period = 365)),
       ne = list(f = addSeason2formula(~1 + unvax  + cat1 + cat2 + pop_mat 
                                       , period = 365),
-                weights = W_exp_gravity()), 
+                weights = fun_wei()), 
       data = list(unvax = log(data_list$unvax_ts), 
                   cat1 = data_list$cat_incidence1,
                   cat2 = data_list$cat_incidence2, 
