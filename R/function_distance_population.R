@@ -6,11 +6,11 @@ importation_distance <- function(regs, neighbours = F){
     # Keep only regions of interest
     loc_centroid <- loc_centroid[is.element(nuts3, regs),]
     loc_centroid <- loc_centroid[!duplicated(rownames(loc_centroid)),]
-    # Create data table with ditance between every region
+    # Create data table with distance between every region
     dt_centroid <- as.data.table(matrix(nrow = length(regs)**2, ncol = 7))
     colnames(dt_centroid) <-  
       c("NUTS3_1", "NUTS3_2", "long1", "lat1", "long2", "lat2", "distance")
-    # Import longitude and lattitude of each region
+    # Import longitude and latitude of each region
     dt_centroid[, NUTS3_1 := rep(loc_centroid$nuts3, nrow(loc_centroid))]
     dt_centroid[, long1 := rep(loc_centroid$X, nrow(loc_centroid))]
     dt_centroid[, lat1 := rep(loc_centroid$Y, nrow(loc_centroid))]
