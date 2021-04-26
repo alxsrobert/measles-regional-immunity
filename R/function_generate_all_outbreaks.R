@@ -1,5 +1,6 @@
 generate_all_sim <- function(n_sim, w_dens, cov, area, pop, list_params,
-                             distance_matrix, start = as.Date("2009-01-29")){
+                             distance_matrix, start = as.Date("2009-01-29"),
+                             rd_params = T){
   # Create a list where each element will be a matrix containing the number
   # of cases per region per day in a given simulation.
   list_sim <- vector(mode = "list", length = n_sim)
@@ -30,9 +31,13 @@ generate_all_sim <- function(n_sim, w_dens, cov, area, pop, list_params,
   
   for(i in 1:n_sim){
     # Draw the parameter sets using the covariance matrix
-    dt_params <- list_params[[1]] + (list_params[[2]] %>% chol %>% t)%*%
-      matrix(rnorm(n = ncol(list_params[[2]])),
-             nrow = ncol(list_params[[2]]), ncol = 1)
+    if(rd_params == F) {
+      dt_params <- matrix(list_params[[1]])
+    } else {
+      dt_params <- list_params[[1]] + (list_params[[2]] %>% chol %>% t)%*%
+        matrix(rnorm(n = ncol(list_params[[2]])),
+               nrow = ncol(list_params[[2]]), ncol = 1)
+    }
     # Update params_current
     params_current[] <- dt_params[1:n_params,1]
     params_current["overdisp"] <- exp(params_current["overdisp"])
