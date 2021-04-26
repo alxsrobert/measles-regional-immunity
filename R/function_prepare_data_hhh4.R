@@ -18,6 +18,9 @@ prep_data <- function(data, pop_mat, area_mat, cov_mat, day, thresh,
   rownames(cases_3years) <- data %>% rownames
   # Compute the number of cases per million
   incidence <- cases_3years / pop_mat[rownames(cases_3years), ] * 1000000
+  
+  if(is.na(thresh)) thresh <- quantile(incidence, 2/3)
+  print(thresh)
   # Compute the three categories of incidence
   cat_incidence1 <- cat_incidence2 <- incidence * 0
   cat_incidence1[incidence > 10 & incidence <= thresh] <- 1
@@ -44,7 +47,6 @@ prep_data <- function(data, pop_mat, area_mat, cov_mat, day, thresh,
         t_i_min <- as.Date(rownames(data)[t - 50])
       date_t <- as.Date(rownames(data)[t])
       dates_t <- as.Date(t_i_min:(date_t-1),  origin = "1970-01-01")
-      
       cases_tot <- data[as.character(dates_t),] * 
         matrix(w_dens[length(dates_t):1], 
                nrow = length(dates_t), ncol = ncol(data), byrow = F)
