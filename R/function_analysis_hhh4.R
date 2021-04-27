@@ -1,6 +1,6 @@
 function_hhh4_daily <- function(pop_mat, area_mat, cov_mat, list_all_sim, 
                                 distance_matrix, prop_gen1, mean_si, sd_si,
-                                max_si, fun_wei, thresh = NA){
+                                max_si, fun_wei, thresh = NA, start = NULL){
   # Extract the number of simulations in list_all_sim
   n_sim <- length(list_all_sim$sim)
   # intialise list of all models
@@ -35,7 +35,7 @@ function_hhh4_daily <- function(pop_mat, area_mat, cov_mat, list_all_sim,
                   pop_mat = log(data_list$pop_mat / 1000000), 
                   area_mat = log(data_list$area_mat),
                   response = data_i
-      ), family = "NegBin1", verbose = T)
+      ), family = "NegBin1", verbose = T, start = list(fixed = start))
     # Run the hhh4 model
     hhh4_run <- hhh4(stsObj = hhh4_sts, control = hhh4_control)
     # Add to the list of models
@@ -47,7 +47,7 @@ function_hhh4_daily <- function(pop_mat, area_mat, cov_mat, list_all_sim,
 
 function_hhh4_aggreg <- function(pop_mat, area_mat, cov_mat, list_all_sim, 
                                  distance_matrix, prop_gen1, fun_wei, 
-                                 thresh = NA, len_agg = 10){
+                                 thresh = NA, len_agg = 10, start){
   # Extract the number of simulations in list_all_sim
   n_sim <- length(list_all_sim$sim)
   # intialise list of all models
@@ -96,7 +96,7 @@ function_hhh4_aggreg <- function(pop_mat, area_mat, cov_mat, list_all_sim,
                   pop = data_list$pop_mat,
                   pop_mat = log(data_list$pop_mat / 1000000), 
                   area_mat = log(data_list$area_mat)
-      ), family = "NegBin1", verbose = T)
+      ), family = "NegBin1", verbose = T, start = list(fixed = start))
     
     # Run the hhh4 model
     hhh4_run <- hhh4(stsObj = hhh4_sts, control = hhh4_control)
