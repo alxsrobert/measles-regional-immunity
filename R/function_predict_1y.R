@@ -1,7 +1,7 @@
 ## Simulate lists of outbreaks
 simulation_main_figures <- function(model, n_param, n_sim_param, days, 
                                     data, pop_mat, w_dens, reg_import = NULL, 
-                                    dates_import = NULL){
+                                    dates_import = NULL, thresh = NA){
   # Total number of simulations is equal to the number of parameter sets * 
   # the number of simulation per parameter set
   n_sim <- n_param * n_sim_param 
@@ -41,7 +41,7 @@ simulation_main_figures <- function(model, n_param, n_sim_param, days,
     model_iter$coefficients <- dt_params[,j]
     # Generate one year of future outbreaks 
     set.seed(1)
-    sim <- generate_1y_outbreak(model = model_iter, thresh = 45, 
+    sim <- generate_1y_outbreak(model = model_iter, thresh = thresh, 
                                 pop_mat = pop_mat, time = days, w_dens = w_dens,
                                 n_sim = n_sim_param, bool_incidence = T,
                                 data = observed_sim, reg_import = reg_import,
@@ -51,7 +51,7 @@ simulation_main_figures <- function(model, n_param, n_sim_param, days,
     
     # Generate one year of future outbreaks with increase of vaccine coverage
     set.seed(1)
-    sim <- generate_1y_outbreak(model = model_iter, thresh = 45,
+    sim <- generate_1y_outbreak(model = model_iter, thresh = thresh,
                                 pop_mat = pop_mat, time = days, w_dens = w_dens, 
                                 data = observed_sim, n_sim = n_sim_param, 
                                 bool_incidence = T, reg_import = reg_import,
@@ -62,7 +62,7 @@ simulation_main_figures <- function(model, n_param, n_sim_param, days,
     
     # Generate one year of future outbreaks with decrease of vaccine coverage
     set.seed(1)
-    sim <- generate_1y_outbreak(model = model_iter, thresh = 45,
+    sim <- generate_1y_outbreak(model = model_iter, thresh = thresh,
                                 pop_mat = pop_mat, time = days, w_dens = w_dens, 
                                 data = observed_sim, reg_import = reg_import, 
                                 n_sim = n_sim_param, bool_incidence = T,
@@ -73,7 +73,7 @@ simulation_main_figures <- function(model, n_param, n_sim_param, days,
     
     # Generate one year of future outbreaks if no transmission in the past 3y
     set.seed(1)
-    sim <- generate_1y_outbreak(model = model_iter, thresh = 45,
+    sim <- generate_1y_outbreak(model = model_iter, thresh = thresh,
                                 pop_mat = pop_mat, time = days, w_dens = w_dens, 
                                 data = observed_sim, reg_import = reg_import, 
                                 n_sim = n_sim_param, bool_incidence = F,
@@ -81,20 +81,46 @@ simulation_main_figures <- function(model, n_param, n_sim_param, days,
     # Add these simulations to list_sim4
     list_sim4[seq_len(n_sim_param) + n_sim_param * (j-1)] <- sim
     
-    print(j)
   }
   list_sim <- list(list_sim1, list_sim2, list_sim3, list_sim4)
   return(list_sim)
 }
 
 ## Simulate 1year of outbreak
-generate_1y_outbreak <- function(model, thresh, pop_mat, time, w_dens,
-                                 n_sim, bool_incidence, data, conditions = list(),
-                                 reg_import = NULL, dates_import = NULL){
+generate_1y_outbreak <- function(model, pop_mat, time, w_dens, n_sim, 
+                                 bool_incidence, data, conditions = list(),
+                                 reg_import = NULL, dates_import = NULL, 
+                                 thresh = NA){
   # Set the dates of the observations
   date_obs <- as.Date(rownames(data))
   # Set the dates of prediction
   date_ncas <- time
+  
+  ## Compute threshold for incidence category
+  if(is.na(thresh)){
+    
+    data <- model$control$data$response
+    all_dates <- as.Date(rownames(data))
+    ## Compute category of incidence
+    cases_3years <- t(sapply(data %>% rownames %>% as.Date, function(X){
+      # Compute the number of cases reported 1 month to  3 years before X
+      if(X < all_dates %>% min + 30){
+        incidence <- data[1:2,]*0
+      } else if(X < all_dates %>% min + 365 *3){
+        incidence <- data[all_dates < X - 30,]
+      } else{
+        incidence <- data[all_dates < X - 30 &
+                            all_dates > X - 365 * 3,]
+      }
+      if(!is.matrix(incidence)) res <- incidence else res <- colSums(incidence)
+      return(res)
+    }))
+    rownames(cases_3years) <- data %>% rownames
+    # Compute the number of cases per million
+    incidence <- cases_3years / pop_mat[rownames(cases_3years), ] * 1000000
+    
+    thresh <- quantile(incidence, 2/3)
+  }
   
   # Initialise the number of daily cases per region
   n_cases <- matrix(0, nrow = length(time), ncol = model$nUnit * n_sim)
@@ -105,7 +131,7 @@ generate_1y_outbreak <- function(model, thresh, pop_mat, time, w_dens,
                   ncol = ncol(data), byrow = F)
   ## Compute the level of recent incidence
   number_recent <- colSums(data[date_obs > (time[1] - 365*3) &
-                          date_obs < (time[1] - 30),])
+                                  date_obs < (time[1] - 30),])
   # If scenario without recent incidence, set number_recent to 0
   if(bool_incidence == F) number_recent <- number_recent * 0
   ## Compute the category of recent incidence
@@ -188,12 +214,12 @@ generate_1y_outbreak <- function(model, thresh, pop_mat, time, w_dens,
   for (i in seq_along(time)[-1]){
     # Compute the number of cases per region in the last 3 years (from data)
     incidence_i <- colSums(data[date_obs > (time[i] - 365*3) &
-                              date_obs < (time[i] - 30),])
+                                  date_obs < (time[i] - 30),])
     # If no recent incidence, set incidence_i to 0
     if(bool_incidence == F) incidence_i <- incidence_i * 0
     # Compute the number of new cases per region in the simulated time steps
     new_incidence <- n_cases[date_ncas > (time[i] - 365*3) &
-                           date_ncas < (time[i] - 30),]
+                               date_ncas < (time[i] - 30),]
     # Add up incidence_i and new_incidence
     if(!is.matrix(new_incidence) && length(new_incidence) > 0){ 
       incidence_i <- incidence_i + new_incidence
