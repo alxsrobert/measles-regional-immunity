@@ -54,7 +54,7 @@ figure_1 <- function(data, mean, sd, frac_no_miss = .5){
         col = "darkred", lwd = 2)
   # Plot the transmission potential
   plot(rowSums(n_cases) ~ as.Date(rownames(data)), 
-       type = "h", lend = "butt", ylab = "Number of cases", xlab = "Date")
+       type = "h", lend = "butt", ylab = "Transmission Potential", xlab = "Date")
   mtext("C", side = 3, line = -2, adj = 0.05, cex = 2)
   
 }
