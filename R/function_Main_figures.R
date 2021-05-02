@@ -60,7 +60,9 @@ figure_1 <- function(data, mean, sd, frac_no_miss = .5){
 }
 
 figure_2 <- function(tot, nei, ar_labs = NULL, ne_labs = NULL, 
-                     end_labs = NULL, other_labs = NULL){
+                     end_labs = NULL, other_labs = NULL,
+                     legend_text = c("Model 1: Spatial spread between all regions", 
+                                     "Model 2: Spatial spread between neighbours only")){
   # Extract and sort the coefficients by components in the tot model
   ar_coef1 <- grepl("ar\\.", names(coef(tot))) %>% which
   ne_coef1 <- grepl("ne\\.", names(coef(tot))) %>% which
@@ -84,6 +86,14 @@ figure_2 <- function(tot, nei, ar_labs = NULL, ne_labs = NULL,
   ne_coef2 <- ne_coef2[-1]
   end_coef2 <- end_coef2[-1]
   
+  # Match the coefficients between the two models in each component
+  pos_ar2 <- match(names(coef(nei))[ar_coef2], names(coef(tot))[ar_coef1])
+  pos_ne2 <- match(names(coef(nei))[ne_coef2], names(coef(tot))[ne_coef1])
+  pos_end2 <- match(names(coef(nei))[end_coef2], names(coef(tot))[end_coef1])
+  pos_other2 <- match(names(coef(nei))[other2], names(coef(tot))[other1])
+  
+  if(any(is.na(pos_other2))) pos_other2[is.na(pos_other2)] <- 2
+  
   ## Plot the coefficients from the autoregressive component
   figs <- cbind(c(0, 0.65, 0, 0.5), c(0.5, 1, 0.5, 1),
                 c(0.65, 1, 0, 0.5), c(0, 0.5, 0.5, 1))
@@ -100,15 +110,14 @@ figure_2 <- function(tot, nei, ar_labs = NULL, ne_labs = NULL,
          angle = 90, code = 3, length = 0.05, col = "blue")
   mtext("A: Autoregressive component", side = 3, line = 0.5, adj = 0, cex = 1.5)
   # from nei model
-  y2 <- seq_along(ar_coef2) + .1
+  y2 <- pos_ar2 + .1
   points(coef(nei)[ar_coef2] ~ y2, pch = 16, col = "purple")
   arrows(x0 = y2, y0 = confint(nei)[ar_coef2, 1],
          x1 = y2, y1 = confint(nei)[ar_coef2, 2], 
          angle = 90, code = 3, length = 0.05, col = "purple")
   # Add the legend
-  legend("top", legend = c("Model 1: Spatial spread between all regions", 
-                           "Model 2: Spatial spread between neighbours only"),
-         lwd = 2, col = c("blue", "purple"), bty = "n", cex  = 1.1)
+  legend("top", legend = legend_text, lwd = 2, col = c("blue", "purple"), 
+         bty = "n", cex  = 1.1)
   # Add the axis labels
   if(!is.null(ar_labs)){
     axis(side = 1, at = seq_along(ar_coef1), labels = ar_labs)    
@@ -133,7 +142,7 @@ figure_2 <- function(tot, nei, ar_labs = NULL, ne_labs = NULL,
   mtext("B: Neighbourhood component", side = 3, line = 0.5, adj = 0, cex = 1.5)
   
   # from nei model
-  y2 <- seq_along(ne_coef2) + .1
+  y2 <- pos_ne2 + .1
   points(coef(nei)[ne_coef2] ~ y2, pch = 16, col = "purple")
   # Add the 95% Confidence Intervals
   arrows(x0 = y2, y0 = confint(nei)[ne_coef2, 1],
@@ -163,7 +172,7 @@ figure_2 <- function(tot, nei, ar_labs = NULL, ne_labs = NULL,
          angle = 90, code = 3, length = 0.05, col = "blue")
   
   # from nei model
-  y2 <- seq_along(end_coef2) + .1
+  y2 <- pos_end2 + .1
   points(coef(nei)[end_coef2] ~ y2, pch = 16, col = "purple")
   # Add the 95% Confidence Intervals
   arrows(x0 = y2, y0 = confint(nei)[end_coef2, 1],
@@ -192,7 +201,7 @@ figure_2 <- function(tot, nei, ar_labs = NULL, ne_labs = NULL,
          x1 = y1, y1 = confint(tot)[other1, 2], 
          angle = 90, code = 3, length = 0.05, col = "blue")
   # from nei model
-  y2 <- seq_along(other2) + .1 + 1
+  y2 <- pos_other2 + .1
   points(coef(nei)[other2] ~ y2, pch = 16, col = "purple")
   # Add the 95% Confidence Intervals
   arrows(x0 = y2, y0 = confint(nei)[other2, 1],
