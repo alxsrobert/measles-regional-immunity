@@ -481,3 +481,16 @@ figure_s14 <- function(pop_mat, unvax_mat, cat_incidence1, cat_incidence2, map){
   test_arrange <- arrangeGrob(p_cases1, p_cases2, p_cases3, ncol = 3)
   plot(test_arrange)
 }
+
+# Number of cases per day of the week
+figure_s19 <- function(cases_ts){
+  all_cases <- rep(names(rowSums(cases_ts)), rowSums(cases_ts))
+  n_day <- table(factor(weekdays(as.Date(all_cases)), 
+                        levels = c("Monday", "Tuesday", "Wednesday", "Thursday",
+                                   "Friday", "Saturday", "Sunday")))
+  
+  par(mfrow = c(1,1), mar = c(5, 5, 1, 1), las = 1, bty ="l", cex.axis = 1.1,
+      cex.main = 1.5, cex.lab = 1.5)
+  plot(n_day, lwd = 50, lend = "butt", ylab = "Number of cases", 
+       xlab = "Day of the Week")
+}
