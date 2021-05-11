@@ -22,10 +22,10 @@ list_all_sim_reported[[1]] <- lapply(list_all_sim[[1]], function(X){
 
 models_daily <- 
   function_hhh4_daily(list_all_sim = list_all_sim_reported, pop_mat = pop_ts, 
-                      area_mat = area_ts, cov_mat = cov_ts, thresh = 45, 
+                      area_mat = area_ts, cov_mat = cov_ts, thresh = NA, 
                       distance_matrix = dist_mat_cent, prop_gen1 = .5, 
                       mean_si = 11.7, sd_si = 2.0, max_si = 50,
-                      report_rate = .7)
+                      fun_wei = W_exp_gravity_tot)
 # Save all daily models
 saveRDS(models_daily, "Output/models_daily.RDS")
 
@@ -33,9 +33,9 @@ saveRDS(models_daily, "Output/models_daily.RDS")
 
 models_aggre <- 
   function_hhh4_aggreg(list_all_sim = list_all_sim_reported, pop_mat = pop_ts, 
-                       area_mat = area_ts, cov_mat = cov_ts, thresh = 45, 
-                       len_agg = 10, distance_matrix = dist_mat_cent,
-                       report_rate = .7)
+                       area_mat = area_ts, cov_mat = cov_ts, thresh = NA, 
+                       len_agg = 10, distance_matrix = dist_mat_cent, 
+                       fun_wei = W_exp_gravity_tot)
 
 # Save all aggregated models
 saveRDS(models_aggre, "Output/models_aggregated.RDS")
