@@ -71,7 +71,7 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
                           exclude_overdisp = T){
   # If which_plot is not numeric, match the elements to the parameter names
   if(!is.numeric(which_plot)){
-    which_plot <- which(is.element(colnames(list_all_sim$params_sim), which_plot))
+    which_plot <- match(which_plot, colnames(list_all_sim$params_sim))
   }
   # Generate CI matrices
   CI_day <- in_CI(list_all_sim = list_all_sim, hhh4_runs = hhh4_day, CI = CI)
