@@ -68,7 +68,7 @@ pit_param <- function(list_all_sim, hhh4_runs){
 }
 # Overall function to generate all figures
 plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot, 
-                          exclude_overdisp = T){
+                          exclude_overdisp = T, mains = NULL){
   # If which_plot is not numeric, match the elements to the parameter names
   if(!is.numeric(which_plot)){
     which_plot <- match(which_plot, colnames(list_all_sim$params_sim))
@@ -88,7 +88,8 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
   pit_i_day <- pit_param(list_all_sim = list_all_sim, hhh4_runs = hhh4_day)
   pit_i_agg <- pit_param(list_all_sim = list_all_sim, hhh4_runs = hhh4_agg)
   # Histograms of the proportion of parameters within the confidence interval
-  par(mfrow = c(2,1), mar = c(5,5,1,1), bty = "l")
+  par(mfrow = c(2,1), mar = c(5,5,1,1), las = 1,
+      bty ="l", cex.axis = 1.1, cex.main = 1.5, cex.lab = 1.5)
   hist(rowSums(CI_day)/ncol(CI_day) * 100, main = "", breaks = seq(0, 100, 2.5), 
        xlab = "", ylab = "")
   title(ylab = "Number of parameters")
@@ -104,20 +105,25 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
   # 2- Density plots of the mean of the parameter (with data)
   # 3- pit histogram of the figure
   n_row <- min(c(3, length(which_plot)))
-  par(mfrow = c(n_row, 3), mar = c(5, 5, 1, 1), las = 1, 
+  par(mfrow = c(n_row, 3), mar = c(5, 5, 1, 1), las = 1,
       bty ="l", cex.axis = 1.1, cex.main = 1.5, cex.lab = 1.5)
   for(i in seq_along(which_plot)){
     param_i <- which_plot[i]
+    if(!is.null(mains)) main_i <- mains[i] else 
+      main_i <- colnames(list_all_sim$params_sim)[param_i]
     # Generate density objects
     dens_dis_day <- density(dist_day[param_i,], na.rm = T)
     dens_dis_agg <- density(dist_agg[param_i,], na.rm = T)
     # Initialise empty plot
-    plot(dens_dis_agg, col = "white", xlab = "", ylab = "", 
-         main = colnames(list_all_sim$params_sim)[param_i], 
+    plot(dens_dis_agg, col = "white", xlab = "", ylab = "", main = main_i, 
          ylim = c(0, max(c(dens_dis_agg$y, dens_dis_day$y))),
          xlim = c(max(-3, min(c(dens_dis_agg$x, dens_dis_day$x))),
                   max(c(dens_dis_agg$x, dens_dis_day$x))))
     if(i %% n_row == 0) title(xlab = "Distance to data")
+    if(i %% n_row == 1) 
+      legend("topleft", legend = c("Daily model", "Aggregated model"),
+             border = NA, fill = c(transp("#fc8d59", .3), transp("#91bfdb", .3)),
+             bty = "n")
     title(ylab = "Density")
     # Add density plots
     polygon(dens_dis_day, col=transp("#fc8d59", .3), border=NA)
@@ -132,8 +138,7 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
     # Compute density of the data 
     dens_data <- density(list_all_sim$params_sim[, param_i], na.rm = T)
     # Initialise empty plot
-    plot(dens_agg, col = "white", xlab = "", ylab = "", 
-         main = colnames(list_all_sim$params_sim)[param_i], 
+    plot(dens_agg, col = "white", xlab = "", ylab = "", main = main_i, 
          ylim = c(0, max(c(dens_day$y, dens_data$y, dens_agg$y))),
          xlim = c(max(c(min(c(dens_agg$x, dens_day$x, dens_data$x)), -3)), 
                   max(c(dens_agg$x, dens_day$x, dens_data$x))))
@@ -150,11 +155,102 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
     hist_day$counts <- hist_day$density
     hist_agg$counts <- hist_agg$density
     plot(hist_day, col = transp("#fc8d59", .3), ylab = "", border = NA,
-         main = colnames(list_all_sim$params_sim)[param_i], 
-         xlab = "", ylim = c(0, max(c(hist_day$counts, hist_agg$counts))))
+         main = main_i, xlab = "", 
+         ylim = c(0, max(c(hist_day$counts, hist_agg$counts))))
     plot(hist_agg, col = transp("#91bfdb", .3), add = TRUE, border = NA)
     abline(h = 1, lwd = 2, lty = 2)
     if(i %% n_row == 0) title(xlab = "Probability Integral Transform")
     title(ylab = "Relative frequency")
   }
+}
+# Plots describing the simulations
+plot_simulations <- function(list_all_sim, list_all_sim_reported, map, 
+                             breaks_vec = c(-1, 5, 25, 50, 75, 95, 100),
+                             labs_vec = c("0-5", "6-25", "26-50", "51-75", 
+                                          "76-95", "96-100"),
+                             thresh = c(1, 10, 50), which_plots = c(1,2)){
+  # Compute the overall number of cases generated
+  n_per_sim <- list_all_sim[[1]] %>% lapply(sum) %>% unlist %>% sort
+  # Compute the number of cases reported
+  n_per_sim_rep <- list_all_sim_reported[[1]] %>% lapply(sum) %>% unlist %>% sort
+  # Vector showing the year of each date entry in the simulation
+  year_sim <- rownames(list_all_sim_reported[[1]][[1]]) %>% as.Date %>% 
+    lubridate::year()
+  # Compute the number of cases generated per year
+  n_per_year <- list_all_sim[[1]] %>% lapply(function(X){
+    n_per_year <- aggregate(x = rowSums(X), by = list(year_sim), sum)$x
+    names(n_per_year) <- unique(year_sim)
+    return(n_per_year)
+  }) %>% do.call(rbind,.)
+  # Compute the number of cases reported per year
+  n_per_year_rep <- list_all_sim_reported[[1]] %>% lapply(function(X){
+    n_per_year <- aggregate(x = rowSums(X), by = list(year_sim), sum)$x
+    names(n_per_year) <- unique(year_sim)
+    return(n_per_year)
+  }) %>% do.call(rbind,.)
+  
+  
+  rep_per_region_1 <- list_all_sim_reported[[1]] %>% lapply(function(X){
+    ab_1 <- (aggregate(x = X, by = list(year_sim), sum)[,-1] >= thresh[1]) %>% 
+      apply(2, any)
+    return(ab_1)
+  }) %>% do.call(rbind,.) %>% colSums()
+  rep_per_region_2 <- list_all_sim_reported[[1]] %>% lapply(function(X){
+    ab_2 <- (aggregate(x = X, by = list(year_sim), sum)[,-1] >= thresh[2]) %>% 
+      apply(2, any)
+    return(ab_2)
+  }) %>% do.call(rbind,.) %>% colSums()
+  rep_per_region_3 <- list_all_sim_reported[[1]] %>% lapply(function(X){
+    ab_3 <- (aggregate(x = X, by = list(year_sim), sum)[,-1] >= thresh[3]) %>% 
+      apply(2, any)
+    return(ab_3)
+  }) %>% do.call(rbind,.) %>% colSums()
+  
+  map1 <- map2 <- map3 <- map
+  map1$ab <- rep_per_region_1[as.character(map$nuts)]
+  map2$ab <- rep_per_region_2[as.character(map$nuts)]
+  map3$ab <- rep_per_region_3[as.character(map$nuts)]
+  if(thresh[1] == 1) map1$type <- paste0("At least 1 case") else
+    map1$type <- paste0("At least ", thresh[1], " cases")
+  map2$type <- paste0("At least ", thresh[2], " cases")
+  map3$type <- paste0("At least ", thresh[3], " cases")
+  
+  # Cut in categories
+  map1$ab_cat <- cut(map1$ab, breaks = breaks_vec, labels = labs_vec)
+  map2$ab_cat <- cut(map2$ab, breaks = breaks_vec, labels = labs_vec)
+  map3$ab_cat <- cut(map3$ab, breaks = breaks_vec, labels = labs_vec)
+  maptot <- rbind(map1, map2, map3)
+  
+  par(mfrow = c(2,2), mar = c(5,5,1,1), las = 1,
+      bty ="l", cex.axis = 1.1, cex.main = 1.5, cex.lab = 1.5)
+
+  plot(n_per_sim, pch = 16, log = "y", ylim = c(3000, 300000), 
+       xlab = "Simulation", ylab = "")
+  title(ylab = "Number of cases", line = 4)
+  points(n_per_sim_rep, pch = 16, col = "red")
+  
+  boxplot(n_per_year_rep, log = "y", col = "red", xlab = "Year")
+  title(ylab = "Number of cases", line = 4)
+  time <- as.Date(rownames(list_all_sim[[1]][[1]]))
+  plot(rowSums(list_all_sim[[1]][[which_plots[1]]]) ~ time, type = "l", 
+       ylab = "Number of cases", xlab = "Day")
+  lines(rowSums(list_all_sim_reported[[1]][[which_plots[1]]]) ~ time, 
+        type = "l", col = "red")
+  plot(rowSums(list_all_sim[[1]][[which_plots[2]]]) ~ time, type = "l",
+       ylab = "Number of cases", xlab = "Day")
+  lines(rowSums(list_all_sim_reported[[1]][[which_plots[2]]]) ~ time, 
+        type = "l", col = "red")
+  
+  p_cases <- ggplot(maptot) +  geom_sf(aes(fill = ab_cat)) + 
+    facet_grid(.~type) +
+    scale_fill_manual(na.translate = F, guide = guide_legend(),
+                      values = c("#2c7bb6", "#abd9e9", "#e0f3f8", 
+                                 "#ffffbf", "#fdae61", "#d7191c"),
+                      name = "Percentage of simulations \n with one year above threshold") + 
+    coord_sf(ylim = c(42, 51.8), xlim = c(-4.5, 7.7)) + theme_classic(base_size = 12) + 
+    theme(axis.text.x = element_blank(), axis.text.y = element_blank(),
+          strip.background = element_blank(), strip.text = element_text(size = 12),  
+          axis.ticks = element_blank(), axis.line = element_blank(), 
+          legend.position = "bottom") + guides(fill = guide_legend(byrow = T))
+  return(p_cases)
 }
