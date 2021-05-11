@@ -88,19 +88,23 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
   pit_i_day <- pit_param(list_all_sim = list_all_sim, hhh4_runs = hhh4_day)
   pit_i_agg <- pit_param(list_all_sim = list_all_sim, hhh4_runs = hhh4_agg)
   # Histograms of the proportion of parameters within the confidence interval
-  par(mfrow = c(2,1), mar = c(3,4,2,0), bty = "l")
-  hist(rowSums(CI_day)/ncol(CI_day), main = "", breaks = seq(0, 1, 0.025), 
-       xlab = "")
-  abline(v = .95, col = "red", lwd = 2, lty = 2)
-  hist(rowSums(CI_agg)/ncol(CI_agg), main = "", breaks = seq(0, 1, 0.025), 
-       xlab = "")
-  abline(v = .95, col = "red", lwd = 2, lty = 2)
-  
+  par(mfrow = c(2,1), mar = c(5,5,1,1), bty = "l")
+  hist(rowSums(CI_day)/ncol(CI_day) * 100, main = "", breaks = seq(0, 100, 2.5), 
+       xlab = "", ylab = "")
+  title(ylab = "Number of parameters")
+  abline(v = 95, col = "red", lwd = 2, lty = 2)
+  hist(rowSums(CI_agg)/ncol(CI_agg) * 100, main = "", breaks = seq(0, 100, 2.5), 
+       xlab = "", ylab = "")
+  abline(v = 95, col = "red", lwd = 2, lty = 2)
+  title(ylab = "Number of parameters")
+  title(xlab = 
+          "Proportion of simulations where the 95% CI contains the data (%)")
   ## For each parameter listed in which_plot, generate 3 figures:
   # 1- The density plot of the difference between estimates and parameter 
   # 2- Density plots of the mean of the parameter (with data)
   # 3- pit histogram of the figure
-  par(mfrow = c(min(c(3, length(which_plot))),3), mar = c(5, 5, 1, 1), las = 1, 
+  n_row <- min(c(3, length(which_plot)))
+  par(mfrow = c(n_row, 3), mar = c(5, 5, 1, 1), las = 1, 
       bty ="l", cex.axis = 1.1, cex.main = 1.5, cex.lab = 1.5)
   for(i in seq_along(which_plot)){
     param_i <- which_plot[i]
@@ -113,6 +117,8 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
          ylim = c(0, max(c(dens_dis_agg$y, dens_dis_day$y))),
          xlim = c(max(-3, min(c(dens_dis_agg$x, dens_dis_day$x))),
                   max(c(dens_dis_agg$x, dens_dis_day$x))))
+    if(i %% n_row == 0) title(xlab = "Distance to data")
+    title(ylab = "Density")
     # Add density plots
     polygon(dens_dis_day, col=transp("#fc8d59", .3), border=NA)
     polygon(dens_dis_agg, col=transp("#91bfdb", .3), border=NA)
@@ -136,6 +142,8 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
     polygon(dens_day, col=transp("#fc8d59", .3), border=NA)
     polygon(dens_agg, col=transp("#91bfdb", .3), border=NA)
     abline(v = 0, lty = 2, lwd = 2)
+    if(i %% n_row == 0) title(xlab = "Parameter value")
+    title(ylab = "Density")
     # Generate histograms
     hist_day <- hist(pit_i_day[param_i,], breaks = seq(0,1, .1), plot = F)
     hist_agg <- hist(pit_i_agg[param_i,], breaks = seq(0,1, .1), plot = F)
@@ -146,5 +154,7 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
          xlab = "", ylim = c(0, max(c(hist_day$counts, hist_agg$counts))))
     plot(hist_agg, col = transp("#91bfdb", .3), add = TRUE, border = NA)
     abline(h = 1, lwd = 2, lty = 2)
+    if(i %% n_row == 0) title(xlab = "Probability Integral Transform")
+    title(ylab = "Relative frequency")
   }
 }
