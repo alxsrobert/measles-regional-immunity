@@ -17,7 +17,8 @@ source("R/function_analysis_hhh4.R")
 source("R/function_generate_map.R")
 source("R/function_figures.R")
 source("R/function_predict_1y.R")
-
+# Functions to generate the calibrations
+source("R/function_calibration.R")
 
 # Import data table linking region nb and region id 
 corres <- data.table(read.csv2(file = "Data/nuts_to_dep.csv", sep = ",", 
