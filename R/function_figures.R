@@ -1,3 +1,96 @@
+# Plots describing the simulations
+plot_simulations <- function(list_all_sim, list_all_sim_reported, map, 
+                             breaks_vec = c(-1, 5, 25, 50, 75, 95, 100),
+                             labs_vec = c("0-5", "6-25", "26-50", "51-75", 
+                                          "76-95", "96-100"),
+                             thresh = c(1, 10, 50), which_plots = c(1,2)){
+  # Compute the overall number of cases generated
+  n_per_sim <- list_all_sim[[1]] %>% lapply(sum) %>% unlist %>% sort
+  # Compute the number of cases reported
+  n_per_sim_rep <- list_all_sim_reported[[1]] %>% lapply(sum) %>% unlist %>% sort
+  # Vector showing the year of each date entry in the simulation
+  year_sim <- rownames(list_all_sim_reported[[1]][[1]]) %>% as.Date %>% 
+    lubridate::year()
+  # Compute the number of cases generated per year
+  n_per_year <- list_all_sim[[1]] %>% lapply(function(X){
+    n_per_year <- aggregate(x = rowSums(X), by = list(year_sim), sum)$x
+    names(n_per_year) <- unique(year_sim)
+    return(n_per_year)
+  }) %>% do.call(rbind,.)
+  # Compute the number of cases reported per year
+  n_per_year_rep <- list_all_sim_reported[[1]] %>% lapply(function(X){
+    n_per_year <- aggregate(x = rowSums(X), by = list(year_sim), sum)$x
+    names(n_per_year) <- unique(year_sim)
+    return(n_per_year)
+  }) %>% do.call(rbind,.)
+  
+  
+  rep_per_region_1 <- list_all_sim_reported[[1]] %>% lapply(function(X){
+    ab_1 <- (aggregate(x = X, by = list(year_sim), sum)[,-1] >= thresh[1]) %>% 
+      apply(2, any)
+    return(ab_1)
+  }) %>% do.call(rbind,.) %>% colSums()
+  rep_per_region_2 <- list_all_sim_reported[[1]] %>% lapply(function(X){
+    ab_2 <- (aggregate(x = X, by = list(year_sim), sum)[,-1] >= thresh[2]) %>% 
+      apply(2, any)
+    return(ab_2)
+  }) %>% do.call(rbind,.) %>% colSums()
+  rep_per_region_3 <- list_all_sim_reported[[1]] %>% lapply(function(X){
+    ab_3 <- (aggregate(x = X, by = list(year_sim), sum)[,-1] >= thresh[3]) %>% 
+      apply(2, any)
+    return(ab_3)
+  }) %>% do.call(rbind,.) %>% colSums()
+  
+  map1 <- map2 <- map3 <- map
+  map1$ab <- rep_per_region_1[as.character(map$nuts)]
+  map2$ab <- rep_per_region_2[as.character(map$nuts)]
+  map3$ab <- rep_per_region_3[as.character(map$nuts)]
+  if(thresh[1] == 1) map1$type <- paste0("At least 1 case") else
+    map1$type <- paste0("At least ", thresh[1], " cases")
+  map2$type <- paste0("At least ", thresh[2], " cases")
+  map3$type <- paste0("At least ", thresh[3], " cases")
+  
+  # Cut in categories
+  map1$ab_cat <- cut(map1$ab, breaks = breaks_vec, labels = labs_vec)
+  map2$ab_cat <- cut(map2$ab, breaks = breaks_vec, labels = labs_vec)
+  map3$ab_cat <- cut(map3$ab, breaks = breaks_vec, labels = labs_vec)
+  maptot <- rbind(map1, map2, map3)
+  
+  par(mfrow = c(2,2), mar = c(5,5,1,1), las = 1,
+      bty ="l", cex.axis = 1.1, cex.main = 1.5, cex.lab = 1.5)
+  # Generate number of cases in each simulation set
+  plot(n_per_sim, pch = 16, log = "y", ylim = c(3000, 300000), 
+       xlab = "Simulation", ylab = "", col = transp("black", .5))
+  title(ylab = "Number of cases", line = 4)
+  points(n_per_sim_rep, pch = 16, , col = transp("red", .5))
+  # Generate boxplots of the number of cases per year
+  boxplot(n_per_year_rep, log = "y", xlab = "Year", pch = 16, 
+          col = transp("red", .5))
+  title(ylab = "Number of cases", line = 4)
+  time <- as.Date(rownames(list_all_sim[[1]][[1]]))
+  # Generate time series for two of the simulation sets
+  plot(rowSums(list_all_sim[[1]][[which_plots[1]]]) ~ time, type = "l", 
+       ylab = "Number of cases", xlab = "Day", col = transp("black", .5))
+  lines(rowSums(list_all_sim_reported[[1]][[which_plots[1]]]) ~ time, 
+        col = transp("red", .5))
+  plot(rowSums(list_all_sim[[1]][[which_plots[2]]]) ~ time, type = "l",
+       ylab = "Number of cases", xlab = "Day", col = transp("black", .5))
+  lines(rowSums(list_all_sim_reported[[1]][[which_plots[2]]]) ~ time, 
+        col = transp("red", .5))
+  # Generate number of cases per region in the simulations
+  p_cases <- ggplot(maptot) +  geom_sf(aes(fill = ab_cat)) + 
+    facet_grid(.~type) +
+    scale_fill_manual(na.translate = F, guide = guide_legend(),
+                      values = c("#2c7bb6", "#abd9e9", "#e0f3f8", 
+                                 "#ffffbf", "#fdae61", "#d7191c"),
+                      name = "Percentage of simulations \n with one year above threshold") + 
+    coord_sf(ylim = c(42, 51.8), xlim = c(-4.5, 7.7)) + theme_classic(base_size = 12) + 
+    theme(axis.text.x = element_blank(), axis.text.y = element_blank(),
+          strip.background = element_blank(), strip.text = element_text(size = 12),  
+          axis.ticks = element_blank(), axis.line = element_blank(), 
+          legend.position = "bottom") + guides(fill = guide_legend(byrow = T))
+  return(p_cases)
+}
 # Function to add transparency to colours 
 transp <- function(col, alpha=.5){
   res <- apply(col2rgb(col),2, function(c) 
@@ -163,94 +256,55 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
     title(ylab = "Relative frequency")
   }
 }
-# Plots describing the simulations
-plot_simulations <- function(list_all_sim, list_all_sim_reported, map, 
-                             breaks_vec = c(-1, 5, 25, 50, 75, 95, 100),
-                             labs_vec = c("0-5", "6-25", "26-50", "51-75", 
-                                          "76-95", "96-100"),
-                             thresh = c(1, 10, 50), which_plots = c(1,2)){
-  # Compute the overall number of cases generated
-  n_per_sim <- list_all_sim[[1]] %>% lapply(sum) %>% unlist %>% sort
-  # Compute the number of cases reported
-  n_per_sim_rep <- list_all_sim_reported[[1]] %>% lapply(sum) %>% unlist %>% sort
-  # Vector showing the year of each date entry in the simulation
-  year_sim <- rownames(list_all_sim_reported[[1]][[1]]) %>% as.Date %>% 
-    lubridate::year()
-  # Compute the number of cases generated per year
-  n_per_year <- list_all_sim[[1]] %>% lapply(function(X){
-    n_per_year <- aggregate(x = rowSums(X), by = list(year_sim), sum)$x
-    names(n_per_year) <- unique(year_sim)
-    return(n_per_year)
-  }) %>% do.call(rbind,.)
-  # Compute the number of cases reported per year
-  n_per_year_rep <- list_all_sim_reported[[1]] %>% lapply(function(X){
-    n_per_year <- aggregate(x = rowSums(X), by = list(year_sim), sum)$x
-    names(n_per_year) <- unique(year_sim)
-    return(n_per_year)
-  }) %>% do.call(rbind,.)
-  
-  
-  rep_per_region_1 <- list_all_sim_reported[[1]] %>% lapply(function(X){
-    ab_1 <- (aggregate(x = X, by = list(year_sim), sum)[,-1] >= thresh[1]) %>% 
-      apply(2, any)
-    return(ab_1)
-  }) %>% do.call(rbind,.) %>% colSums()
-  rep_per_region_2 <- list_all_sim_reported[[1]] %>% lapply(function(X){
-    ab_2 <- (aggregate(x = X, by = list(year_sim), sum)[,-1] >= thresh[2]) %>% 
-      apply(2, any)
-    return(ab_2)
-  }) %>% do.call(rbind,.) %>% colSums()
-  rep_per_region_3 <- list_all_sim_reported[[1]] %>% lapply(function(X){
-    ab_3 <- (aggregate(x = X, by = list(year_sim), sum)[,-1] >= thresh[3]) %>% 
-      apply(2, any)
-    return(ab_3)
-  }) %>% do.call(rbind,.) %>% colSums()
-  
-  map1 <- map2 <- map3 <- map
-  map1$ab <- rep_per_region_1[as.character(map$nuts)]
-  map2$ab <- rep_per_region_2[as.character(map$nuts)]
-  map3$ab <- rep_per_region_3[as.character(map$nuts)]
-  if(thresh[1] == 1) map1$type <- paste0("At least 1 case") else
-    map1$type <- paste0("At least ", thresh[1], " cases")
-  map2$type <- paste0("At least ", thresh[2], " cases")
-  map3$type <- paste0("At least ", thresh[3], " cases")
-  
-  # Cut in categories
-  map1$ab_cat <- cut(map1$ab, breaks = breaks_vec, labels = labs_vec)
-  map2$ab_cat <- cut(map2$ab, breaks = breaks_vec, labels = labs_vec)
-  map3$ab_cat <- cut(map3$ab, breaks = breaks_vec, labels = labs_vec)
-  maptot <- rbind(map1, map2, map3)
-  
-  par(mfrow = c(2,2), mar = c(5,5,1,1), las = 1,
-      bty ="l", cex.axis = 1.1, cex.main = 1.5, cex.lab = 1.5)
+# Proportion of cases per component
+plot_prop_comp <- function(list_all_sim = list_all_sim_reported, 
+                           hhh4_day = models_daily, hhh4_agg = models_aggre){
+  # Extract the proportion of cases from each component in the daily model
+  prop_daily <- lapply(models_daily, function(X){
+    mean_X <- meanHHH(coef(X), terms(X))
+    nb_comp <- c(AR = sum(mean_X$epi.own),
+                 NE = sum(mean_X$epi.neighbours),
+                 EN = sum(mean_X$endemic))
+    return(nb_comp / sum(nb_comp))
+  }) %>% do.call(rbind, .)
 
-  plot(n_per_sim, pch = 16, log = "y", ylim = c(3000, 300000), 
-       xlab = "Simulation", ylab = "")
-  title(ylab = "Number of cases", line = 4)
-  points(n_per_sim_rep, pch = 16, col = "red")
+  # Extract the proportion of cases from each component in the aggregated model
+  prop_aggre <- lapply(models_aggre, function(X){
+    mean_X <- meanHHH(coef(X), terms(X))
+    nb_comp <- c(AR = sum(mean_X$epi.own),
+                 NE = sum(mean_X$epi.neighbours),
+                 EN = sum(mean_X$endemic))
+    return(nb_comp / sum(nb_comp))
+  }) %>% do.call(rbind, .)
+  # Generate the median and 95% CI for each component, daily model
+  med_day <- apply(prop_daily, 2, median) * 100
+  min_day <- apply(prop_daily, 2, function(X) quantile(X, probs = c(0.025))) * 100
+  max_day <- apply(prop_daily, 2, function(X) quantile(X, probs = c(0.975))) * 100
+  # Generate the median and 95% CI for each component, aggregated model
+  med_agg <- apply(prop_aggre, 2, median) * 100
+  min_agg <- apply(prop_aggre, 2, function(X) quantile(X, probs = c(0.025))) * 100
+  max_agg <- apply(prop_aggre, 2, function(X) quantile(X, probs = c(0.975))) * 100
+  # Generate the median and 95% CI for each component, data
+  med_data <- apply(list_all_sim$prop_comp, 2, median) * 100
+  min_data <- apply(list_all_sim$prop_comp, 2, 
+                    function(X) quantile(X, probs = c(0.025))) * 100
+  max_data <- apply(list_all_sim$prop_comp, 2, 
+                    function(X) quantile(X, probs = c(0.975))) * 100
   
-  boxplot(n_per_year_rep, log = "y", col = "red", xlab = "Year")
-  title(ylab = "Number of cases", line = 4)
-  time <- as.Date(rownames(list_all_sim[[1]][[1]]))
-  plot(rowSums(list_all_sim[[1]][[which_plots[1]]]) ~ time, type = "l", 
-       ylab = "Number of cases", xlab = "Day")
-  lines(rowSums(list_all_sim_reported[[1]][[which_plots[1]]]) ~ time, 
-        type = "l", col = "red")
-  plot(rowSums(list_all_sim[[1]][[which_plots[2]]]) ~ time, type = "l",
-       ylab = "Number of cases", xlab = "Day")
-  lines(rowSums(list_all_sim_reported[[1]][[which_plots[2]]]) ~ time, 
-        type = "l", col = "red")
+  # Use barplots to represent the medians, and arrows for the 95% CI
+  par(mfrow = c(1,1), mar = c(5, 5, 1, 1), las = 1, bty ="l", cex.axis = 1.1,
+      cex.main = 1.5, cex.lab = 2)
+  b <- barplot(rbind(med_data, med_day, med_agg), beside = T, 
+               col = c("grey", "blue", "purple"),
+               main = "Proportion of cases per component", ylab = "Percentage",
+               ylim = c(0, 100), border = NA)
+  arrows(x0 = b[1,], y0 = min_data, x1 = b[1,], y1 = max_data, 
+         angle = 90, code = 3, length = 0.05, lwd = 2)
+  arrows(x0 = b[2,], y0 = min_day, x1 = b[2,], y1 = max_day, 
+         angle = 90, code = 3, length = 0.05, lwd = 2)
+  arrows(x0 = b[3,], y0 = min_agg, x1 = b[3,], y1 = max_agg, 
+         angle = 90, code = 3, length = 0.05, lwd = 2)
+  legend("topright", legend = c("Simulations", "Daily model", "Aggregated model"),
+         fill = c("grey", "blue", "purple"), bty = "n", cex  = 1.1, border = NA)
   
-  p_cases <- ggplot(maptot) +  geom_sf(aes(fill = ab_cat)) + 
-    facet_grid(.~type) +
-    scale_fill_manual(na.translate = F, guide = guide_legend(),
-                      values = c("#2c7bb6", "#abd9e9", "#e0f3f8", 
-                                 "#ffffbf", "#fdae61", "#d7191c"),
-                      name = "Percentage of simulations \n with one year above threshold") + 
-    coord_sf(ylim = c(42, 51.8), xlim = c(-4.5, 7.7)) + theme_classic(base_size = 12) + 
-    theme(axis.text.x = element_blank(), axis.text.y = element_blank(),
-          strip.background = element_blank(), strip.text = element_text(size = 12),  
-          axis.ticks = element_blank(), axis.line = element_blank(), 
-          legend.position = "bottom") + guides(fill = guide_legend(byrow = T))
-  return(p_cases)
 }
