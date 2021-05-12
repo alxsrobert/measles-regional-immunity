@@ -28,6 +28,8 @@ generate_all_sim <- function(n_sim, w_dens, cov, area, pop, list_params,
     as.data.frame(matrix(nrow = n_sim, ncol = nrow(distance_matrix)))
   colnames(r_fin_ar) <- colnames(r_fin_ne) <- colnames(r_fin_end) <- 
     colnames(distance_matrix)
+  # Matrix showing th proportion of cases coming from each component
+  prop_comp <- matrix(nrow = n_sim, ncol = 3)
   
   for(i in 1:n_sim){
     # Draw the parameter sets using the covariance matrix
@@ -67,10 +69,16 @@ generate_all_sim <- function(n_sim, w_dens, cov, area, pop, list_params,
     r_fin_ne[i,] <- outbreak$r0_ne[nrow(outbreak$r0_ne),]
     # Extract the final value of the endemic predictor per region
     r_fin_end[i,] <- outbreak$r0_en[nrow(outbreak$r0_en),]
+    # Compute the proportion of cases coming from each component
+    all_cases <- c(AR = sum(outbreak$n_cases_ar, na.rm = T),
+                   NE = sum(outbreak$n_cases_ne, na.rm = T),
+                   EN = sum(outbreak$n_cases_en))
+    prop_comp[i,] <- all_cases / sum(all_cases)
     # Extract the parameter set for this simulation
     params_sim[i,] <- params_current
   }
   
   return(list(sim = list_sim, r_ar = r_fin_ar, r_ne = r_fin_ne,
-              r_end = r_fin_end, params_sim = params_sim))
+              r_end = r_fin_end, params_sim = params_sim,
+              prop_comp = prop_comp))
 }
