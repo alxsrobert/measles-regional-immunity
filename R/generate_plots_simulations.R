@@ -25,6 +25,7 @@ list_all_sim_reported[[1]] <- lapply(list_all_sim[[1]], function(X){
 ### Plots data
 p <- plot_simulations(list_all_sim = list_all_sim, which_plots = c(45, 64), 
                       list_all_sim_reported = list_all_sim_reported, map = map)
+
 ### Analysis hhh4 runs 
 # Generate figures, select which parameter to plot in variable "which"
 plot_analysis(list_all_sim = list_all_sim_reported, hhh4_day = models_daily, 
@@ -39,3 +40,6 @@ plot_analysis(list_all_sim = list_all_sim_reported, hhh4_day = models_daily,
                         "Endemic - Incidence 2"),
               exclude_overdisp = T)
 
+### Proportion in each component
+plot_prop_comp(list_all_sim = list_all_sim, hhh4_day = models_daily, 
+               hhh4_agg = models_aggre)
