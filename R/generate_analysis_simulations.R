@@ -3,7 +3,13 @@ source("R/import_library.R")
 source("R/import_covariates.R")
 # Import list of simulations
 list_all_sim <- readRDS("Output/simulation_set.RDS")
-# Set the number interpretcontrol function
+## Modify the interpretcontrol function from the surveillance package to 
+## integrate the transmission potential to hhh4 models.
+# In the new version stsobj@observed corresponds to the transmission potential,
+# whereas control$response corresponds to the number of cases per region at 
+# each time step. The transmission potential is used to computed the mean 
+# number of expected cases at t, whereas the "response" data frame is used to
+# generate the likelihood (i.e. it corresponds to the daily data).
 assignInNamespace("interpretControl", my.interpretControl, ns = "surveillance", 
                   pos = "package:surveillance")
 
