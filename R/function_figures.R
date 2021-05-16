@@ -63,20 +63,27 @@ plot_simulations <- function(list_all_sim, list_all_sim_reported, map,
        xlab = "Simulation", ylab = "", col = transp("black", .5))
   title(ylab = "Number of cases", line = 4)
   points(n_per_sim_rep, pch = 16, , col = transp("red", .5))
+  legend("left", legend = c("Cases generated", "Cases reported"),
+         border = NA, fill = c(transp("black", .7), transp("red", .7)),
+         bty = "n", cex = 1.3)
+  mtext("A", side = 3, line = -2, adj = 0.1, cex = 2)
   # Generate boxplots of the number of cases per year
   boxplot(n_per_year_rep, log = "y", xlab = "Year", pch = 16, 
           col = transp("red", .5))
   title(ylab = "Number of cases", line = 4)
+  mtext("B", side = 3, line = -2, adj = 0.1, cex = 2)
   time <- as.Date(rownames(list_all_sim[[1]][[1]]))
   # Generate time series for two of the simulation sets
   plot(rowSums(list_all_sim[[1]][[which_plots[1]]]) ~ time, type = "l", 
        ylab = "Number of cases", xlab = "Day", col = transp("black", .5))
   lines(rowSums(list_all_sim_reported[[1]][[which_plots[1]]]) ~ time, 
         col = transp("red", .5))
+  mtext("C", side = 3, line = -2, adj = 0.1, cex = 2)
   plot(rowSums(list_all_sim[[1]][[which_plots[2]]]) ~ time, type = "l",
        ylab = "Number of cases", xlab = "Day", col = transp("black", .5))
   lines(rowSums(list_all_sim_reported[[1]][[which_plots[2]]]) ~ time, 
         col = transp("red", .5))
+  mtext("D", side = 3, line = -2, adj = 0.1, cex = 2)
   # Generate number of cases per region in the simulations
   p_cases <- ggplot(maptot) +  geom_sf(aes(fill = ab_cat)) + 
     facet_grid(.~type) +
@@ -174,6 +181,9 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
     CI_day <- CI_day[-25,]
     CI_agg <- CI_agg[-25,]
   }
+  # Remove intercepts
+  CI_day <- CI_day[-grep("intercept", rownames(CI_day)),]
+  CI_agg <- CI_agg[-grep("intercept", rownames(CI_agg)),]
   # Generate difference between mean of the estimates and the parameter set
   dist_day <- distance_params(list_all_sim = list_all_sim, hhh4_runs = hhh4_day)
   dist_agg <- distance_params(list_all_sim = list_all_sim, hhh4_runs = hhh4_agg)
@@ -186,13 +196,15 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
   hist(rowSums(CI_day)/ncol(CI_day) * 100, main = "", breaks = seq(0, 100, 2.5), 
        xlab = "", ylab = "")
   title(ylab = "Number of parameters")
+  mtext("A: Daily models", side = 3, line = -2, adj = 0.1, cex = 2)
   abline(v = 95, col = "red", lwd = 2, lty = 2)
   hist(rowSums(CI_agg)/ncol(CI_agg) * 100, main = "", breaks = seq(0, 100, 2.5), 
        xlab = "", ylab = "")
   abline(v = 95, col = "red", lwd = 2, lty = 2)
+  mtext("B: Aggregated models", side = 3, line = -2, adj = 0.1, cex = 2)
   title(ylab = "Number of parameters")
   title(xlab = 
-          "Proportion of simulations where the 95% CI contains the data (%)")
+          "Proportion of simulations with the input parameter included in the 95% confidence interval of the model")
   ## For each parameter listed in which_plot, generate 3 figures:
   # 1- The density plot of the difference between estimates and parameter 
   # 2- Density plots of the mean of the parameter (with data)
@@ -201,6 +213,10 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
   par(mfrow = c(n_row, 3), mar = c(5, 5, 1, 1), las = 1,
       bty ="l", cex.axis = 1.1, cex.main = 1.5, cex.lab = 1.5)
   for(i in seq_along(which_plot)){
+    if(i %% (n_row) == 1){
+      par(mfrow = c(n_row, 3), mar = c(5, 5, 1, 1), las = 1, 
+          bty ="l", cex.axis = 1.1, cex.main = 1.5, cex.lab = 1.5)
+    }
     param_i <- which_plot[i]
     if(!is.null(mains)) main_i <- mains[i] else 
       main_i <- colnames(list_all_sim$params_sim)[param_i]
@@ -212,11 +228,18 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
          ylim = c(0, max(c(dens_dis_agg$y, dens_dis_day$y))),
          xlim = c(max(-3, min(c(dens_dis_agg$x, dens_dis_day$x))),
                   max(c(dens_dis_agg$x, dens_dis_day$x))))
-    if(i %% n_row == 0) title(xlab = "Distance to data")
-    if(i %% n_row == 1) 
-      legend("topleft", legend = c("Daily model", "Aggregated model"),
-             border = NA, fill = c(transp("#fc8d59", .3), transp("#91bfdb", .3)),
-             bty = "n")
+    if(i %% n_row == 0 || i == length(which_plot)) 
+      title(xlab = "Distance to data")
+    if(i %% n_row == 1) {
+      legend("left", legend = c("Daily model", "Aggregated model", "Simulations"),
+             border = NA, fill = c(transp("#fc8d59", .3), transp("#91bfdb", .3),
+                                   transp("black", .3)),
+             bty = "n", cex = 1.3)
+      mtext("A", side = 3, line = -2, adj = 0.1, cex = 2)
+    }
+    if(i %% n_row == 2) mtext("D", side = 3, line = -2, adj = 0.1, cex = 2)
+    if(i %% n_row == 0) mtext("G", side = 3, line = -2, adj = 0.1, cex = 2)
+
     title(ylab = "Density")
     # Add density plots
     polygon(dens_dis_day, col=transp("#fc8d59", .3), border=NA)
@@ -240,7 +263,11 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
     polygon(dens_day, col=transp("#fc8d59", .3), border=NA)
     polygon(dens_agg, col=transp("#91bfdb", .3), border=NA)
     abline(v = 0, lty = 2, lwd = 2)
-    if(i %% n_row == 0) title(xlab = "Parameter value")
+    if(i %% n_row == 0 || i == length(which_plot)) 
+      title(xlab = "Parameter value")
+    if(i %% n_row == 1) mtext("B", side = 3, line = -2, adj = 0.1, cex = 2)
+    if(i %% n_row == 2) mtext("E", side = 3, line = -2, adj = 0.1, cex = 2)
+    if(i %% n_row == 0) mtext("H", side = 3, line = -2, adj = 0.1, cex = 2)
     title(ylab = "Density")
     # Generate histograms
     hist_day <- hist(pit_i_day[param_i,], breaks = seq(0,1, .1), plot = F)
@@ -252,28 +279,31 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
          ylim = c(0, max(c(hist_day$counts, hist_agg$counts))))
     plot(hist_agg, col = transp("#91bfdb", .3), add = TRUE, border = NA)
     abline(h = 1, lwd = 2, lty = 2)
-    if(i %% n_row == 0) title(xlab = "Probability Integral Transform")
+    if(i %% n_row == 0 || i == length(which_plot)) 
+      title(xlab = "Probability Integral Transform")
+    if(i %% n_row == 1) mtext("C", side = 3, line = -2, adj = 0.1, cex = 2)
+    if(i %% n_row == 2) mtext("F", side = 3, line = -2, adj = 0.1, cex = 2)
+    if(i %% n_row == 0) mtext("I", side = 3, line = -2, adj = 0.1, cex = 2)
     title(ylab = "Relative frequency")
   }
 }
 # Proportion of cases per component
-plot_prop_comp <- function(list_all_sim = list_all_sim_reported, 
-                           hhh4_day = models_daily, hhh4_agg = models_aggre){
+plot_prop_comp <- function(list_all_sim, hhh4_day, hhh4_agg){
   # Extract the proportion of cases from each component in the daily model
   prop_daily <- lapply(models_daily, function(X){
     mean_X <- meanHHH(coef(X), terms(X))
-    nb_comp <- c(AR = sum(mean_X$epi.own),
-                 NE = sum(mean_X$epi.neighbours),
-                 EN = sum(mean_X$endemic))
+    nb_comp <- c(Autoregressive = sum(mean_X$epi.own),
+                 Neighbourhood = sum(mean_X$epi.neighbours),
+                 Endemic = sum(mean_X$endemic))
     return(nb_comp / sum(nb_comp))
   }) %>% do.call(rbind, .)
 
   # Extract the proportion of cases from each component in the aggregated model
   prop_aggre <- lapply(models_aggre, function(X){
     mean_X <- meanHHH(coef(X), terms(X))
-    nb_comp <- c(AR = sum(mean_X$epi.own),
-                 NE = sum(mean_X$epi.neighbours),
-                 EN = sum(mean_X$endemic))
+    nb_comp <- c(Autoregressive = sum(mean_X$epi.own),
+                 Neighbourhood = sum(mean_X$epi.neighbours),
+                 Endemic = sum(mean_X$endemic))
     return(nb_comp / sum(nb_comp))
   }) %>% do.call(rbind, .)
   # Generate the median and 95% CI for each component, daily model
