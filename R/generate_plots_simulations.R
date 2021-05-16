@@ -9,6 +9,8 @@ models_daily <- c(readRDS("Output/models_daily1.RDS"),
                   readRDS("Output/models_daily3.RDS"),
                   readRDS("Output/models_daily4.RDS"))
 models_aggre <- readRDS("Output/models_aggregated.RDS")
+scores_agg <- readRDS("Output/scores_aggreg.RDS")
+scores_day <- readRDS("Output/scores_day.RDS")
 map <- generate_map()
 
 ### Apply report rate
@@ -43,3 +45,6 @@ plot_analysis(list_all_sim = list_all_sim_reported, hhh4_day = models_daily,
 ### Proportion in each component
 plot_prop_comp(list_all_sim = list_all_sim, hhh4_day = models_daily, 
                hhh4_agg = models_aggre)
+
+## Difference in calibration scores
+plot_calib_scores(scores_agg = scores_agg, scores_day = scores_day)

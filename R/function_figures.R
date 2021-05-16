@@ -338,3 +338,54 @@ plot_prop_comp <- function(list_all_sim, hhh4_day, hhh4_agg){
          fill = c("grey", "blue", "purple"), bty = "n", cex  = 1.1, border = NA)
   
 }
+# Difference in calibration scores
+plot_calib_scores <- function(scores_agg, scores_day){
+  # Generate mean value of bias per simulation, aggregated and daily models
+  mean_bias_agg <- apply(scores_agg$bias, 3, mean)
+  mean_bias_day <- apply(scores_day$bias, 3, mean)
+  # Generate mean value of sharpness per simulation, aggregated and daily models
+  mean_shar_agg <- apply(scores_agg$shar, 3, mean)
+  mean_shar_day <- apply(scores_day$shar, 3, mean)
+  # Generate mean value of RPS per simulation, aggregated and daily models
+  mean_rps_agg <- apply(scores_agg$rps, 3, mean)
+  mean_rps_day <- apply(scores_day$rps, 3, mean)
+  ## Compute and categorise the difference between aggregated and daily models
+  # Bias
+  cat_diff_bias <- cut(mean_bias_agg - mean_bias_day, 
+                       breaks = c(-0.01, 0, 0.01, 0.02, 0.05),
+                       labels = c("-0.01 - 0", "0 - 0.01", "0.01 - 0.02", 
+                                  "> 0.02"))
+  # Sharpness
+  cat_diff_shar <- cut(mean_shar_agg - mean_shar_day, 
+                       breaks = c(-0.05, -0.01, 0, 0.01, 1),
+                       labels = c("-0.05 - -0.01", "-0.01 - 0", 
+                                  "0 - 0.01", "> 0.01"))
+  # RPS
+  cat_diff_rps <- cut(mean_rps_agg - mean_rps_day, 
+                      breaks = c(0, 0.005, 0.01, 0.02, 0.05),
+                      labels = c("0 - 0.005", "0.005 - 0.01", 
+                                 "0.01-0.02", "> 0.02"))
+  ## Plot the three barplots representing the categories of difference
+  par(mfrow = c(1,3), mar = c(5,5,4,1), las = 1, bty = "l", cex.axis = 1.1, 
+      cex.main = 1.5, cex.lab = 2)
+  barplot(table(cat_diff_bias), main = "", xlab = "Difference", 
+          col = c(transp("grey", .6), transp("grey", .6),
+                  transp("blue", .3), transp("blue", .6)),
+          border = NA, ylab = "Count", ylim = c(0, 80))
+  legend("top", fill = c(transp("purple", .9), transp("grey", .6),
+                         transp("blue", .9)), border = NA,
+         legend = c("Better in the aggregated model",
+                    "Close in both models", 
+                    "Better in the daily model"), bty = "n", cex = 1.5)
+  mtext("A: Bias", side = 3, line = 1, adj = .1, cex = 2)
+  barplot(table(cat_diff_shar), main = "", xlab = "Difference", 
+          col = c(transp("purple", .3), transp("grey", .6),
+                  transp("grey", .6), transp("blue", .3)),
+          border = NA)
+  mtext("B: Sharpness", side = 3, line = 1, adj = .1, cex = 2)
+  barplot(table(cat_diff_rps), main = "", xlab = "Difference", 
+          col = c(transp("grey", .3), transp("blue", .3),
+                  transp("blue", .6), transp("blue", .9)),
+          border = NA)
+  mtext("C: RPS", side = 3, line = 1, adj = .1, cex = 2)
+}
