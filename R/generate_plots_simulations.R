@@ -34,12 +34,13 @@ plot_analysis(list_all_sim = list_all_sim_reported, hhh4_day = models_daily,
               hhh4_agg = models_aggre, CI = .95, 
               which_plot = c("vacc_ar", "vacc_ne", "vacc_en",
                              "cat1_imm_ar", "cat1_imm_ne", "cat1_imm_en",
-                             "cat2_imm_ar", "cat2_imm_ne", "cat2_imm_en"), 
+                             "cat2_imm_ar", "cat2_imm_ne", "cat2_imm_en", 
+                             "dist", "pop"), 
               mains = c("Autoregressive - Vaccination", "Neighbourhood - Vaccination",
                         "Endemic - Vaccination", "Autoregressive - Incidence 1", 
                         "Neighbourhood - Incidence 1", "Endemic - Incidence 1",
                         "Autoregressive - Incidence 2", "Neighbourhood - Incidence 2",
-                        "Endemic - Incidence 2"),
+                        "Endemic - Incidence 2", "Distance", "Population"),
               exclude_overdisp = T)
 
 ### Proportion in each component
