@@ -32,8 +32,12 @@ models_daily <-
                       distance_matrix = dist_mat_cent, prop_gen1 = .5, 
                       mean_si = 11.7, sd_si = 2.0, max_si = 50,
                       fun_wei = W_exp_gravity_tot)
-# Save all daily models
-saveRDS(models_daily, "Output/models_daily.RDS")
+## Save all daily models
+# Split in four objects, otherwise too heavyfor Github commits
+saveRDS(models_daily[1:25], "Output/models_daily1.RDS")
+saveRDS(models_daily[26:50], "Output/models_daily2.RDS")
+saveRDS(models_daily[51:75], "Output/models_daily3.RDS")
+saveRDS(models_daily[76:100], "Output/models_daily4.RDS")
 
 #### Analysis aggregated data ####
 
