@@ -302,8 +302,108 @@ figure_3 <- function(model, map){
   plot(test_arrange)
 }
 
-figure_4 <- function(){
+figure_4 <- function(model, list_calib){
+  # Generate the number of cases stemming of each component at each date
+  hhh_mod <- meanHHH(coef(model), terms(model))
   
+  # Organise the plotting area
+  layout_matrix <- matrix(rep(seq_len(4), each = 2), ncol = 4, byrow = T)
+  layout_matrix[2,] <- 3:6
+  layout(layout_matrix)
+  par(mar = c(5,4,1,0), las = 1, bty = "l", cex.axis = 1.1, cex.main = 1.5, 
+      cex.lab = 2)
+  ## First plot: Daily fit
+  # y = The observed data
+  y <- model$control$data$response[-1,] %>% rowSums()
+  dates <- (as.Date(names(y)))
+  # Initialise an empty plot
+  plot(y~dates, type = "n", xlab = "", ylab = "")
+  # Plot the overall number of cases at each date
+  lines((hhh_mod$epidemic + hhh_mod$endemic) %>% rowSums()~dates,
+        col = "orange", type = "h")
+  # Plot the autoregressive + endemic
+  lines((hhh_mod$epi.own + hhh_mod$endemic) %>% rowSums()~dates,
+        col = "blue", type = "h")
+  # Plot the endemic
+  lines(hhh_mod$endemic %>% rowSums()~dates, col = "grey", type = "h")
+  # Add the data points
+  points(y[y>0]~dates[y>0], type = "p", pch = 19, cex = .6)
+  # Add the title
+  title(xlab = "Days", ylab = "Number of cases", line = 2.5)
+  legend("top", lwd = c(2,2,2,NA), bty = "n", cex = 1.5, 
+         pch = c(NA, NA, NA, 19), col = c("orange", "blue", "grey", "black"),
+         legend = c("Neighbourhood component", "Autoregressive component",
+                    "Endemic component", "Data"))
+  mtext("A", side = 3, line = -2, adj = .1, cex = 2)
+  
+  ## Weekly fits
+  par(mar = c(5, 2, 1, 2), las = 1, bty ="l", cex.axis = 1.1,
+      cex.main = 1.5, cex.lab = 2)
+  # Generate the dates of weekly aggregation
+  group_r <- seq(1, ceiling(nrow(hhh_mod$epi.own)/7))
+  group_r <- rep(group_r, each = 7)[1:nrow(hhh_mod$epi.own)]
+  
+  
+  # Aggregate the autoregressive, neighbourhood, and endemic components
+  ar_agg <- aggregate.data.frame(x = hhh_mod$epi.own, by = list(group_r),
+                                 FUN = sum)[,-1] %>% rowSums()
+  ne_agg <- aggregate.data.frame(x = hhh_mod$epi.neighbours, by = list(group_r),
+                                 FUN = sum)[, -1] %>% rowSums()
+  end_agg <- aggregate.data.frame(x = hhh_mod$endemic, by = list(group_r),
+                                  FUN = sum)[, -1] %>% rowSums()
+  # Aggregate the reported data
+  y <- aggregate.data.frame(x = model$control$data$response[-1,],
+                            by = list(group_r), FUN = sum)[,-1] %>% rowSums()
+  # Total aggregated number of cases
+  tot_agg <- ar_agg + ne_agg + end_agg
+  # Aggregated autoregressive + endemic
+  ar_end_agg <- ar_agg + end_agg
+  # Compute the unique dates of aggregation
+  dates <- (as.Date(rownames(hhh_mod$epi.own[which(!duplicated(group_r)),])))
+  ## Plot the aggregated values
+  plot(y~dates, type = "n", xlab = "", ylab = "")
+  lines((tot_agg)~dates, col = "orange", lwd = 3, type = "h")
+  lines((ar_end_agg)~dates, col = "blue", lwd = 3, type = "h")
+  lines(end_agg~dates, col = "grey", lwd = 3, type = "h")
+  points(y[y>0]~dates[y>0], type = "p", pch = 19, cex = .6)
+  title(xlab = "Weeks", line = 2.5)
+  mtext("B", side = 3, line = -2, adj = 0.1, cex = 2)
+  
+  ### Generate the PIT histograms
+  ## Define the function to compute the PIT values
+  par(mar = c(5, 4, 1, 1), las = 1, bty ="l", cex.axis = 1.1,
+      cex.main = 1.5, cex.lab = 2)
+  Fbar1 <- function (u, Px, Pxm1){
+    F_u <- punif(u, Pxm1, Px)  # also works for Pxm1 == Px => F_u = u >= Pxm1
+    mean(F_u)
+  }
+  
+  # For each element of list_calib, compute and plot the PIT histograms
+  for(i in seq_along(list_calib)){
+    breaks <- (0:20)/20
+    calib <- list_calib[[i]]
+    # Compute proportion of entry in each category of the PIT histogram
+    Fbar_seq_prop <- vapply(X = breaks, FUN = Fbar1, FUN.VALUE = 0,
+                            Px = c(calib$px),Pxm1 = c(calib$pxm1),
+                            USE.NAMES = FALSE)
+    # Plot the PIT histograms
+    plot(20 * diff(Fbar_seq_prop)~breaks[-length(breaks)],
+         type = "h", ylim = c(0.5, 1.5), lend = "butt", lwd = 20, col = "grey",
+         ylab = "", xlab = "")
+    abline(col = "red", lty = 2, h = 1)
+    abline(col = "red", lty = 3, h = c(0.9, 1.1))
+    title(ylab = "Relative Frequency", line = 2.5)
+    # Add legends, titles, and labels
+    if(i == 1){
+      mtext("C: 3 days", side = 3, line = -2, adj = 0.1, cex = 2)
+      par(mar = c(5, 2, 1, 2), las = 1, bty ="l", cex.axis = 1.1,
+          cex.main = 1.5, cex.lab = 2)
+    }
+    if(i == 2) mtext("D: 7 days", side = 3, line = -2, adj = 0.1, cex = 2)
+    if(i == 3) mtext("E: 10 days", side = 3, line = -2, adj = 0.1, cex = 2)
+    if(i == 4) mtext("F: 14 days", side = 3, line = -2, adj = 0.1, cex = 2)
+  }
+  title(xlab = "Probability Integral Transform", outer = T, line = - 1.5)
 }
 
 figure_5_6 <- function(list_sim, model, map, which_dates, breaks,
