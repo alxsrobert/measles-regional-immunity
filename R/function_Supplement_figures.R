@@ -1,3 +1,5 @@
+## Generate the Figures S3 to S6: Description of the missing coverage data and
+## diagnostics of the mixed model 
 figures_coverage <- function(corres, len_break = 1, 
                              reg_exc = c("FRA10", "FRA20", "FRA30", "FRA40", 
                                          "FR831", "FR832", "FR")){
@@ -215,6 +217,8 @@ figures_coverage <- function(corres, len_break = 1,
   plot(gg3)
 }  
 
+## Generate figures S1, S2, S7, and S8, which describe the parameters estimates
+## in the different models of the sensitivity analysis 
 figures_sensitivity <- function(model, mat_coef, min_coef = NULL, 
                                 max_coef = NULL,ar_labs = NULL, ne_labs = NULL,
                                 end_labs = NULL, other_labs = NULL){
@@ -363,7 +367,8 @@ figure_s9 <- function(tot, nei){
   t <- (as.Date("2019-01-01") + seq_len(366) - 1)
   t_num <- (t - tot$control$data$unvax %>% rownames %>% as.Date %>% min) %>% 
     as.numeric
-  
+  ## Plot the effect of seasonality per day of the year, in all components of
+  ## each model
   par(mfrow = c(2,1), mar = c(5, 5, 1, 1), las = 1, bty ="l", cex.axis = 1.1,
       cex.main = 1.5, cex.lab = 1.5)
   plot(100*(exp(tot_cos_ar * cos(2 * pi * t_num/365) + 
@@ -395,8 +400,59 @@ figure_s9 <- function(tot, nei){
   
 }
 
+# Comparison of the trajectories in the calibration
+figure_s11 <- function(list_calib_tot, list_calib_nei, model){
+  # Compute the dates of calibration used in both list_calib objects
+  dates_calib <- as.numeric(rownames(list_calib_tot[[1]]$tot))
+  # Generate the number of cases in the data
+  mat_data_tot <- sapply(dates_calib, function(X){
+    return(c(model$control$data$response[X + 1:3,] %>% sum(),
+             model$control$data$response[X + 1:7,] %>% sum(),
+             model$control$data$response[X + 1:10,] %>% sum(),
+             model$control$data$response[X + 1:14,] %>% sum()))
+  })
+  # Column names of mat_data_tot correspond to the dates of calibration
+  colnames(mat_data_tot) <-
+    rownames(model$control$data$response)[dates_calib]
+  # Generate the trajectories for 3, 7, 10, and 14 days calibration
+  par(mfrow = c(2,2), oma = c(1,1,1,1), mar = c(4, 4, 0, 0), las = 1, bty ="l", 
+      cex.axis = 1.1, cex.main = 1.5, cex.lab = 2)
+  for(i in seq_along(list_calib_tot)){
+    max_y <- max(list_calib_tot[[i]]$tot, list_calib_nei[[i]]$tot) * 1.5
+    x_axis <- as.Date(colnames(mat_data_tot))
+    # Plot data points
+    plot(mat_data_tot[i,] ~ x_axis, pch = 16, ylab = "",
+         xlab = "", ylim = c(0, max_y))
+    # Plot median estimates
+    lines(list_calib_tot[[i]]$tot[,3,1] ~ x_axis, col = "blue", lwd = 2)
+    lines(list_calib_nei[[i]]$tot[,3,1] ~ x_axis, col = "purple", lwd = 2)
+    # Plot 95%CIs
+    polygon(x = c(x_axis, rev(x_axis)), col = transp("blue", .3), border = NA,
+            y = c(list_calib_tot[[i]]$tot[,1,1], 
+                  rev(list_calib_tot[[i]]$tot[,5,1])))
+    polygon(x = c(x_axis, rev(x_axis)), col = transp("purple", .3), border = NA,
+            y = c(list_calib_nei[[i]]$tot[,1,1], 
+                  rev(list_calib_nei[[i]]$tot[,5,1])))
+    # Add legends, titles, and labels
+    if(i == 1){
+      mtext("A: 3 days", side = 3, line = -2, adj = 0.1, cex = 2)
+      legend("right", legend = c("Model 1", "Model 2"),
+             lwd = 2, col = c("blue", "purple"), bty = "n", cex  = 1.1)
+    }
+    if(i == 2) mtext("B: 7 days", side = 3, line = -2, adj = 0.1, cex = 2)
+    if(i == 3) mtext("C: 10 days", side = 3, line = -2, adj = 0.1, cex = 2)
+    if(i == 4){
+      mtext("D: 14 days", side = 3, line = -2, adj = 0.1, cex = 2)
+      title(xlab = "Time (days)", ylab = "Number of cases", outer = T, line = -1)
+    } 
+  }
+
+  
+  
+}
+
 ## Generate the proportion of cases coming from each component in the models
-figure_s11 <- function(tot, nei){
+figure_s12 <- function(tot, nei){
   ### Generate the average number of cases per component at each date
   ## In model "tot"
   tot_hhh <- meanHHH(coef(tot), terms(tot))
@@ -426,7 +482,7 @@ figure_s11 <- function(tot, nei){
 }
 
 ## Generate the spatial distribution of the latest value of the covariates
-figure_s14 <- function(pop_mat, unvax_mat, cat_incidence1, cat_incidence2, map){
+figure_s15 <- function(pop_mat, unvax_mat, cat_incidence1, cat_incidence2, map){
   # Latest value of the population matrix
   map$pop <- pop_mat[nrow(pop_mat), ][map$nuts3]
   # Put in categories
@@ -482,9 +538,49 @@ figure_s14 <- function(pop_mat, unvax_mat, cat_incidence1, cat_incidence2, map){
   plot(test_arrange)
 }
 
+# Comparison calibration scores in daily and aggregated models
+figure_s18 <- function(scores_agg, scores_day){
+  # Compute the dates of calibration in the aggregated scores, so that the
+  # scores are compared on the same date
+  iters <- match(as.numeric(rownames(scores_agg$tot)) * 10,
+                 rownames(scores_day$tot))
+  
+  # Define the plot layout 
+  layout_matrix <- matrix(1:4, ncol = 2, byrow = T)
+  layout_matrix[2,2] <- 3
+  layout(layout_matrix)
+  ## Plot the sharpness
+  par(mar = c(5, 5, 1, 1), las = 1, bty ="l", cex.axis = 1.1,
+      cex.main = 1.5, cex.lab = 2)
+  # Compute the mean sharpness in the daily and aggregated models 
+  shar_vec <- c(mean(scores_day$sharpness[iters,,1]), 
+                mean(scores_agg$sharpness))
+  plot(shar_vec, pch = "-", ylab = "", xaxt = "n",  cex = 3, xlim = c(0.5, 2.5),
+       xlab = "", ylim = c(min(shar_vec) * .8, max(shar_vec) * 1.2))
+  title(ylab = "Sharpness", line = 3.5)
+  axis(at = seq_len(2), side = 1, labels = c("Daily", "Aggregated"))
+  
+  # Compute the mean bias in the daily and aggregated models 
+  bias_vec <- c(mean((scores_day$bias[iters,,1])), mean((scores_agg$bias)))
+  plot(bias_vec, pch = "-", ylab = "", xaxt = "n", cex = 3, xlim = c(0.5, 3.5), 
+       xlab = "", ylim = c(-max(abs(bias_vec)) * 2, max(abs(bias_vec)) * 2))
+  abline(h = 0, lty = 2)
+  title(ylab = "Bias", line = 3.5)
+  axis(at = seq_len(2), side = 1, labels = c("Daily", "Aggregated"))
+  
+  # Compute the mean rps in the daily and aggregated models 
+  rps_vec <- c(mean(scores_day$rps[iters,,1]), mean(scores_agg$rps))
+  plot(rps_vec, pch = "-", ylab = "", xaxt = "n", cex = 3, xlim = c(0.5, 2.5), 
+       xlab = "", ylim = c(min(rps_vec) * .8, max(rps_vec) * 1.2))
+  title(ylab = "RPS score", line = 3.5)
+  axis(at = seq_len(2), side = 1, labels = c("Daily", "Aggregated"))
+  
+}
+
 # Number of cases per day of the week
 figure_s19 <- function(cases_ts){
   all_cases <- rep(names(rowSums(cases_ts)), rowSums(cases_ts))
+  # Compute the number of cases per day
   n_day <- table(factor(weekdays(as.Date(all_cases)), 
                         levels = c("Monday", "Tuesday", "Wednesday", "Thursday",
                                    "Friday", "Saturday", "Sunday")))
