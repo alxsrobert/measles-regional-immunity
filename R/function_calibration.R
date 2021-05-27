@@ -15,6 +15,8 @@ calibration_model <- function(model_list, daily, all_dates,
   mat_shar <- array(dim = c(length(all_dates), n_reg, n_model))
   mat_rps <- array(dim = c(length(all_dates), n_reg, n_model))
   mat_log <- array(dim = c(length(all_dates), n_reg, n_model))
+  mat_tot <- array(dim = c(length(all_dates), 5, n_model))
+  rownames(mat_tot) <- all_dates
   # Array with the proportion of simulations where the number of cases is 
   # equal to the number of cases in the observation
   px <- array(dim = c(length(all_dates), n_reg, n_model))
@@ -62,6 +64,8 @@ calibration_model <- function(model_list, daily, all_dates,
                                    control = control, j = date, mat_w = mat_w)
           k_sum <- cbind(k_sum, k_sum2)
         }
+        mat_tot[j, ,i] <- quantile(colSums(k_sum), 
+                                   probs = c(0.025, 0.25, 0.5, 0.75, 0.975))
         # Compute the logs score for each entry
         mat_log[j,,i] <- -log(rowSums(k_sum == data_j)/ncol(k_sum))
         # For each region, compute the bias, sharpness, and RPS score (scoringutils)
@@ -103,7 +107,7 @@ calibration_model <- function(model_list, daily, all_dates,
     }
   }
   return(list(bias = mat_bias, sharpness = mat_shar, rps = mat_rps, 
-              log = mat_log, px = px, pxm1 = pxm1))
+              log = mat_log, px = px, pxm1 = pxm1, tot = mat_tot))
 }
 
 # Simulate over the calibration period
