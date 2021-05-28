@@ -1,5 +1,5 @@
 generate_sim <- function(w_dens, cov, area, pop, distance_matrix, 
-                         params, start, thresh_immun = 45){
+                         params, start, thresh_incid = 45){
   # Set up intercept of each component
   R0_ar <- rep(params["intercept_ar"], ncol(cov))
   R0_en <- rep(params["intercept_en"], ncol(cov))
@@ -34,10 +34,10 @@ generate_sim <- function(w_dens, cov, area, pop, distance_matrix,
   area_0 <- area[as.character(start),]
   
   # At the starting point, the level of recent incidence is 0 in each region 
-  immun_0 <- rep(1, length(cov_0))
-  immun_1 <- rep(0, length(cov_0))
-  immun_2 <- rep(0, length(cov_0))
-  names(immun_0) <- names(immun_1) <- names(immun_2) <- names(cov_0)
+  incid_0 <- rep(1, length(cov_0))
+  incid_1 <- rep(0, length(cov_0))
+  incid_2 <- rep(0, length(cov_0))
+  names(incid_0) <- names(incid_1) <- names(incid_2) <- names(cov_0)
 
   # Compute the number of iterations
   weeks_sim <- rownames(cov_ts)[rownames(cov_ts) >= start]
@@ -57,21 +57,21 @@ generate_sim <- function(w_dens, cov, area, pop, distance_matrix,
   # Compute the first value of each predictor
   t <- 0
   R0_ar_reg <- exp(R0_ar + params["vacc_ar"] * log(1 - cov_0/100) + 
-                     params["cat1_imm_ar"] * immun_1 + 
-                     params["cat2_imm_ar"] * immun_2 + 
+                     params["cat1_imm_ar"] * incid_1 + 
+                     params["cat2_imm_ar"] * incid_2 + 
                      params["pop_ar"] * log(pop_0 / 1000000) + 
                      params["area_ar"] * log(area_0) + 
                      params["sin_ar"] * sin(t * 2*pi/365)+
                      params["cos_ar"] * cos(t * 2*pi/365))
   R0_ne_reg <- exp(R0_ne + params["vacc_ne"] * log(1 - cov_0/100) + 
-                     params["cat1_imm_ne"] * immun_1 + 
-                     params["cat2_imm_ne"] * immun_2 + 
+                     params["cat1_imm_ne"] * incid_1 + 
+                     params["cat2_imm_ne"] * incid_2 + 
                      params["pop_ne"] * log(pop_0 / 1000000) + 
                      params["sin_ne"] * sin(t * 2*pi/365)+
                      params["cos_ne"] * cos(t * 2*pi/365))
   R0_en_reg <- exp(R0_en + params["vacc_en"] * log(1 - cov_0/100) + 
-                     params["cat1_imm_en"] * immun_1 + 
-                     params["cat2_imm_en"] * immun_2 + 
+                     params["cat1_imm_en"] * incid_1 + 
+                     params["cat2_imm_en"] * incid_2 + 
                      params["pop_en"] * log(pop_0 / 1000000) + 
                      params["sin_en"] * sin(t * 2*pi/365)+
                      params["cos_en"] * cos(t * 2*pi/365))
@@ -81,7 +81,7 @@ generate_sim <- function(w_dens, cov, area, pop, distance_matrix,
   all_r0_en[1,] <- R0_en_reg
   
   # Number of cases at t=0 is 0
-  n_cases_ar <- n_cases_en <- n_cases_ne <- immun <- n_cases
+  n_cases_ar <- n_cases_en <- n_cases_ne <- incid <- n_cases
   # Draw the number of cases at t = 1
   n_cases[t + 1,] <- sapply(R0_en_reg, function(X)
     rnbinom(1, mu = X, size = params["overdisp"]))
@@ -104,45 +104,45 @@ generate_sim <- function(w_dens, cov, area, pop, distance_matrix,
       num_date <- as.numeric(as.Date(time_i))
       ## For each region, sum cases infected 1 month to 1 year before time_i
       # generate dates
-      weeks_immun <- 
+      weeks_incid <- 
         rownames(n_cases)[num_dates < num_date - 30 &
                             num_dates > num_date - 365 * 3]
       # Select rows
-      immunity <- n_cases[weeks_immun,]
+      incidence <- n_cases[weeks_incid,]
       # Sum rows
-      if(length(weeks_immun) > 1) immunity <- colSums(n_cases[weeks_immun,]) 
+      if(length(weeks_incid) > 1) incidence <- colSums(n_cases[weeks_incid,]) 
       
       # Compute the number of cases per million
-      immunity <- immunity / pop_i * 1000000
-      immun_0 <- immun_1 <- immun_2 <- immunity * 0
+      incidence <- incidence / pop_i * 1000000
+      incid_0 <- incid_1 <- incid_2 <- incidence * 0
       # Region with a number of cases per million below 10 belong to cat0
-      immun_0[immunity < 10] <- 1
+      incid_0[incidence < 10] <- 1
       # Region with a number of cases per million 10-thresh belong to cat1
-      immun_1[immunity > 10 & immunity <= thresh_immun] <- 1
+      incid_1[incidence > 10 & incidence <= thresh_incid] <- 1
       # Region with a number of cases per million above thresh belong to cat2
-      immun_2[immunity > thresh_immun] <- 1
-      if(any(immun_0 + immun_1 + immun_2 !=1)) stop("Problem immunity")
+      incid_2[incidence > thresh_incid] <- 1
+      if(any(incid_0 + incid_1 + incid_2 !=1)) stop("Problem incidence")
     }
     # Compute the value of the predictors at time_i
     R0_ar_reg <- exp(R0_ar +
                        params["vacc_ar"] * log(1 - cov_i/100) + 
-                       params["cat1_imm_ar"] * immun_1 + 
-                       params["cat2_imm_ar"] * immun_2 + 
+                       params["cat1_imm_ar"] * incid_1 + 
+                       params["cat2_imm_ar"] * incid_2 + 
                        params["pop_ar"] * log(pop_i / 1000000) + 
                        params["area_ar"] * log(area_i) + 
                        params["sin_ar"] * sin(t * 2*pi/365)+
                        params["cos_ar"] * cos(t * 2*pi/365))
     R0_ne_reg <- exp(R0_ne +
                        params["vacc_ne"] * log(1 - cov_i/100) + 
-                       params["cat1_imm_ne"] * immun_1 + 
-                       params["cat2_imm_ne"] * immun_2 + 
+                       params["cat1_imm_ne"] * incid_1 + 
+                       params["cat2_imm_ne"] * incid_2 + 
                        params["pop_ne"] * log(pop_i / 1000000) + 
                        params["sin_ne"] * sin(t * 2*pi/365)+
                        params["cos_ne"] * cos(t * 2*pi/365))
     R0_en_reg <- exp(R0_en +
                        params["vacc_en"] * log(1 - cov_i/100) + 
-                       params["cat1_imm_en"] * immun_1 + 
-                       params["cat2_imm_en"] * immun_2 + 
+                       params["cat1_imm_en"] * incid_1 + 
+                       params["cat2_imm_en"] * incid_2 + 
                        params["pop_en"] * log(pop_i/ 1000000) + 
                        params["sin_en"] * sin(t * 2*pi/365)+
                        params["cos_en"] * cos(t * 2*pi/365))
@@ -171,10 +171,10 @@ generate_sim <- function(w_dens, cov, area, pop, distance_matrix,
     n_cases_en[i,] <- new_en_av
     n_cases_ne[i,] <- new_ne_av
     # Update the matrix of the level of coverage per day per region
-    immun[i,] <- immun_1 + immun_2 * 2
+    incid[i,] <- incid_1 + incid_2 * 2
   }
   
-  return(list(n_cases = n_cases, immun = immun,
+  return(list(n_cases = n_cases, incid = incid,
               r0_ar = all_r0_ar, r0_ne = all_r0_ne, r0_en = all_r0_en, 
               n_cases_ar = n_cases_ar, n_cases_en = n_cases_en, 
               n_cases_ne = n_cases_ne))
