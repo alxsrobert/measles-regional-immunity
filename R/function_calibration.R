@@ -31,7 +31,6 @@ calibration_model <- function(model_list, daily, all_dates,
     if(daily){
       fixed_coef <- fixef(model)
       for(j in seq_along(all_dates)){
-        print(j)
         # Extract the date at i
         date <- all_dates[j]
         # Extract the input parameters of the hhh4 model
