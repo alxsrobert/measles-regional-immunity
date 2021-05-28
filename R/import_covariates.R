@@ -25,7 +25,7 @@ corres <- data.table(read.csv2(file = "Data/nuts_to_dep.csv", sep = ",",
                                dec = ".", stringsAsFactors = F)[,c(2,1)])
 colnames(corres) <- c("GeoCode", "regions")
 setkey(corres, regions)
-# Create covariate time series
+# Create coverage time series
 cov_ts <- importation_coverage(corres = corres)
 regs <- colnames(cov_ts)
 all_dates <- as.Date(rownames(cov_ts))
