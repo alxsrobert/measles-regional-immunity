@@ -1,3 +1,4 @@
+# Figure 1: Data description
 figure_1 <- function(data, mean, sd, frac_no_miss = .5){
   ## Generate composite serial interval from mean, standard deviation and 
   ## proportion of connection without missing generation
@@ -59,6 +60,7 @@ figure_1 <- function(data, mean, sd, frac_no_miss = .5){
   
 }
 
+# Figure 2: Parameter estimates
 figure_2 <- function(tot, nei, ar_labs = NULL, ne_labs = NULL, 
                      end_labs = NULL, other_labs = NULL,
                      legend_text = c("Model 1: Spatial spread between all regions", 
@@ -217,31 +219,47 @@ figure_2 <- function(tot, nei, ar_labs = NULL, ne_labs = NULL,
     
 }
 
-figure_3 <- function(model, map){
+# Figure 3: Geographical distribution of the predictors
+figure_3 <- function(model1, model2, map){
   ### Compute the last value of the predictors
   ## Remove the seasonal effect (we are interested in the average value)
-  # Compute the terms of the model
-  terms_model <- terms(model)
+  # Compute the terms of each model
+  terms_model1 <- terms(model1)
+  terms_model2 <- terms(model2)
+  
   # Find out what columns of the term matrix generate the seasonal effect
-  terms_season <- c(grep("cos", as.character(unlist(terms_model$terms[2,]))),
-                    grep("sin", as.character(unlist(terms_model$terms[2,]))))
+  terms_season1 <- c(grep("cos", as.character(unlist(terms_model1$terms[2,]))),
+                     grep("sin", as.character(unlist(terms_model1$terms[2,]))))
+  terms_season2 <- c(grep("cos", as.character(unlist(terms_model2$terms[2,]))),
+                     grep("sin", as.character(unlist(terms_model2$terms[2,]))))
   # Set the effect of these columns to 0
-  for (j in terms_season) 
-    terms_model$terms[[1, j]] <- terms_model$terms[[1, j]] * 0
+  for (j in terms_season1) 
+    terms_model1$terms[[1, j]] <- terms_model1$terms[[1, j]] * 0
+  for (j in terms_season2) 
+    terms_model2$terms[[1, j]] <- terms_model2$terms[[1, j]] * 0
   # Compute the values of the predictors at each iteration
-  mean_model <- meanHHH(coef(model), terms_model)
+  mean_model1 <- meanHHH(coef(model1), terms_model1)
+  mean_model2 <- meanHHH(coef(model2), terms_model2)
   ### Values of the endemic predictor
   map$type <- "Endemic"
+  map2 <- map
+  map$model <- "Model 1"
+  map2$model <- "Model 2"
   # Extract the value of the endemic predictor from mean_model
-  map$Reff <- mean_model$end.exppred[nrow(mean_model$end.exppred),
-                                     ][as.character(map$nuts3)]
+  map$Reff <- mean_model1$end.exppred[nrow(mean_model1$end.exppred),
+  ][as.character(map$nuts3)]
+  map2$Reff <- mean_model2$end.exppred[nrow(mean_model2$end.exppred),
+  ][as.character(map2$nuts3)]
   # Cut in categories
   map$R_cat <- cut(map$Reff, breaks = c(-1, 5e-4, 1e-3, 5e-3,
                                         max(map$Reff + .1, na.rm = T)), 
                    labels = c("<5e-4", "5-10e-4", "10-50e-4", ">5e-3"))
-  map$lab <- ""
+  map2$R_cat <- cut(map2$Reff, breaks = c(-1, 5e-4, 1e-3, 5e-3,
+                                          max(map2$Reff + .1, na.rm = T)), 
+                    labels = c("<5e-4", "5-10e-4", "10-50e-4", ">5e-3"))
+  maptot <- rbind(map, map2)
   # Generate the ggplot of the endemic predictor
-  imp_end <- ggplot(map) +  geom_sf(aes(fill = R_cat)) + facet_grid(lab~type) +
+  imp_end <- ggplot(maptot) +  geom_sf(aes(fill = R_cat)) + facet_grid(model~type) +
     scale_fill_manual(na.translate = F, guide = guide_legend(),
                       values = c("#feedde", "#fdae6b", "#e6550d", "#a63603"),
                       name = "Predictor") + 
@@ -249,22 +267,30 @@ figure_3 <- function(model, map){
     theme(axis.text.x = element_blank(), axis.text.y = element_blank(),
           strip.background = element_blank(), axis.ticks = element_blank(), 
           axis.line = element_blank(), legend.position = "bottom", 
-          strip.text = element_text(size = 20))
-
+          strip.text = element_text(size = 20),
+          strip.text.y = element_blank())
+  
   ## Values of the neighbourhood predictor
   map$type <- "Neighbourhood"
+  map2$type <- "Neighbourhood"
   # Extract the value of the neighbourhood predictor from mean_model
-  map$Reff <- mean_model$ne.exppred[nrow(mean_model$ne.exppred),][
+  map$Reff <- mean_model1$ne.exppred[nrow(mean_model1$ne.exppred),][
     as.character(map$nuts3)]
+  map2$Reff <- mean_model2$ne.exppred[nrow(mean_model2$ne.exppred),][
+    as.character(map2$nuts3)]
   # Normalise the values
-  map$Reff <- map$Reff / 640
+  map$Reff <- map$Reff / 300
+  map2$Reff <- map2$Reff / 300
   # Cut in categories
   map$R_cat <- cut(map$Reff, breaks = c(-1, 0.25, 0.5, 1,
                                         max(map$Reff + .1, na.rm = T)), 
                    labels = c("0-0.25", "0.25-0.5", "0.5-1", ">1"))
-  map$lab <- ""
+  map2$R_cat <- cut(map2$Reff, breaks = c(-1, 0.25, 0.5, 1,
+                                          max(map2$Reff + .1, na.rm = T)), 
+                    labels = c("0-0.25", "0.25-0.5", "0.5-1", ">1"))
+  maptot <- rbind(map, map2)
   # Generate the ggplot of the neighbourhood predictor
-  imp <- ggplot(map) +  geom_sf(aes(fill = R_cat)) + facet_grid(lab~type) +
+  imp <- ggplot(maptot) +  geom_sf(aes(fill = R_cat)) + facet_grid(model~type) +
     scale_fill_manual(na.translate = F, guide = guide_legend(),
                       values = c("#feedde", "#fdae6b", "#e6550d", "#a63603"),
                       name = "Predictor") + 
@@ -272,23 +298,31 @@ figure_3 <- function(model, map){
     theme(axis.text.x = element_blank(), axis.text.y = element_blank(),
           strip.background = element_blank(), axis.ticks = element_blank(), 
           axis.line = element_blank(), legend.position = "bottom", 
-          strip.text = element_text(size = 20))
-
-
+          strip.text = element_text(size = 20),
+          strip.text.y = element_blank())
+  
+  
   ## Values of the autoregressive predictor
   map$type <- "Autoregressive"
+  map2$type <- "Autoregressive"
   # Extract the value of the autoregressive predictor from mean_model
-  map$Reff <- mean_model$ar.exppred[nrow(mean_model$ar.exppred),][map$nuts3] + 
-    mean_model$end.exppred[nrow(mean_model$ne.exppred),][map$nuts3]
+  map$Reff <- mean_model1$ar.exppred[nrow(mean_model1$ar.exppred),][map$nuts3] + 
+    mean_model1$end.exppred[nrow(mean_model1$ne.exppred),][map$nuts3]
+  map2$Reff <- mean_model2$ar.exppred[nrow(mean_model2$ar.exppred),][map2$nuts3] + 
+    mean_model2$end.exppred[nrow(mean_model2$ne.exppred),][map2$nuts3]
   map$type <- "Autoregressive"
+  map2$type <- "Autoregressive"
   break_vec <- c(-1, 0.65, 0.7, 0.75, max(map$Reff + .1, na.rm = T))
   break_lab <- c("0-0.65", "0.65-0.7", "0.7-0.75", ">0.75")
   
   # Cut in categories
   map$R_cat <- cut(map$Reff, breaks = break_vec, 
                    labels = break_lab)
+  map2$R_cat <- cut(map2$Reff, breaks = break_vec, 
+                    labels = break_lab)
+  maptot <- rbind(map, map2)
   # Generate the ggplot of the autoregressive predictor
-  in_reg_nb <- ggplot(map) +  geom_sf(aes(fill = R_cat)) + facet_grid(lab~type) +
+  in_reg_nb <- ggplot(maptot) +  geom_sf(aes(fill = R_cat)) + facet_grid(model~type) +
     scale_fill_manual(na.translate = F, guide = guide_legend(),
                       values = c("#feedde", "#fdae6b", "#e6550d", "#a63603"),
                       name = "Predictor") + 
@@ -299,9 +333,10 @@ figure_3 <- function(model, map){
           strip.text = element_text(size = 20))
   # Arrange all three plots together
   test_arrange <- arrangeGrob(imp_end, imp, in_reg_nb, ncol = 3)
-  plot(test_arrange)
+  return(test_arrange)
 }
 
+# Figure 4: Fit and calibration
 figure_4 <- function(model, list_calib){
   # Generate the number of cases stemming of each component at each date
   hhh_mod <- meanHHH(coef(model), terms(model))
@@ -406,6 +441,7 @@ figure_4 <- function(model, list_calib){
   title(xlab = "Probability Integral Transform", outer = T, line = - 1.5)
 }
 
+# Figure 5: 1-year-ahead simulations
 figure_5_6 <- function(list_sim, model, map, which_dates, breaks,
                        labs, name_elements, thresh_cases, order_reg = NULL,
                        import_loc = NULL){
