@@ -63,6 +63,8 @@ plot_simulations <- function(list_all_sim, list_all_sim_reported, map,
        xlab = "Simulation", ylab = "", col = transp("black", .5))
   title(ylab = "Number of cases", line = 4)
   points(n_per_sim_rep, pch = 16, , col = transp("red", .5))
+  # Actual number of cases over this time period:
+  abline(h = 14000, lwd = 2, lty = 2)
   legend("left", legend = c("Cases generated", "Cases reported"),
          border = NA, fill = c(transp("black", .7), transp("red", .7)),
          bty = "n", cex = 1.3)
