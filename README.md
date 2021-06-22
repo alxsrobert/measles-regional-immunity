@@ -1,9 +1,7 @@
 # measles-regional-immunity
 This repository contains the code and files to reproduce the analysis of our paper
-> Alexis Robert, Adam J Kucharski, Helen C Johnson, Nick Bundle, 
-> and Sebastian Funk, *The impact of local vaccine coverage and 
-> recent incidence on measles transmission in France between 2009 
-> and 2018*
+> Alexis Robert, Adam J Kucharski, and Sebastian Funk, 
+> *The impact of local vaccine coverage and  recent incidence on measles transmission in France between 2009 and 2018* (https://www.medrxiv.org/content/10.1101/2021.05.31.21257977v1)
 
 This repository also contains scripts to generate a simulation study, aiming to assess the impact of aggregation on the Epidemic-Endemic framework. 
 
