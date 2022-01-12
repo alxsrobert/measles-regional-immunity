@@ -1,5 +1,5 @@
 sens_SI <- function(vals, list_all_sim, pop_mat, area_mat, cov_mat, fun_wei,
-                    distance_matrix, mean_si, sd_si, max_si, thresh = NA,
+                    distance_matrix, mean_si, sd_si, max_si, thresh = c(10, NA),
                     start_coef = NULL){
   # Run the model, with the proportion of transmission without missing cases
   # indicated in the vector vals
@@ -28,7 +28,7 @@ sens_SI <- function(vals, list_all_sim, pop_mat, area_mat, cov_mat, fun_wei,
 }
 
 sens_vax <- function(n, list_all_sim, pop_mat, area_mat, fun_wei, corres,
-                     distance_matrix, mean_si, sd_si, max_si, thresh = NA,
+                     distance_matrix, mean_si, sd_si, max_si, thresh = c(10, NA),
                      start_coef = NULL, prop_gen1){
   
   for(i in seq_len(n)){
@@ -56,7 +56,7 @@ sens_vax <- function(n, list_all_sim, pop_mat, area_mat, fun_wei, corres,
 
 sens_weekday <- function(list_all_sim, pop_mat, area_mat, fun_wei, prop_gen1,
                          distance_matrix, mean_si, sd_si, max_si, cov_mat,
-                         thresh = NA, start_coef = NULL){
+                         thresh = c(10, NA), start_coef = NULL){
   data <- list_all_sim[[1]][[1]]
   # Generate the list of data needed to run the hhh4 models
   data_list <- prep_data(data = data, pop_mat = pop_mat, 
@@ -95,4 +95,52 @@ sens_weekday <- function(list_all_sim, pop_mat, area_mat, fun_wei, prop_gen1,
   # Run the hhh4 model
   hhh4_run <- hhh4(stsObj = hhh4_sts, control = hhh4_control)
   return(hhh4_run)
+}
+
+sens_incid <- function(list_all_sim, pop_mat, area_mat, fun_wei, prop_gen1,
+                       distance_matrix, mean_si, sd_si, max_si, cov_mat,
+                       start_coef = NULL){
+  data <- list_all_sim[[1]][[1]]
+  # Generate the list of data needed to run the hhh4 models
+  data_list <- prep_data(data = data, pop_mat = pop_mat, 
+                         area_mat = area_mat, cov_mat = cov_mat, day = T, 
+                         thresh = c(2.5, NA), distance_matrix = distance_matrix, 
+                         prop_gen1 = prop_gen1, mean_si = mean_si, 
+                         sd_si = sd_si, max_si = max_si)
+  ## Sts object 
+  # observed is the potential for transmission, ie the convolution of the 
+  # number of recent cases and the serial interval
+  hhh4_sts <- sts(observed = data_list$previous, start = c(2009,1), 
+                  frequency = 365, neighbourhood = data_list$distance_matrix)
+  ## Control list
+  hhh4_control <- list(
+    end = list(f = (addSeason2formula(~1 + unvax + cat1 + cat2 + pop_mat
+                                      , period = 365))),
+    ar = list(f = addSeason2formula(~1 + unvax  + cat1 + cat2 + pop_mat + 
+                                      area_mat, period = 365)),
+    ne = list(f = addSeason2formula(~1 + unvax  + cat1 + cat2 + pop_mat 
+                                    , period = 365), weights = fun_wei()), 
+    data = list(unvax = log(data_list$unvax_ts), 
+                cat1 = data_list$cat_incidence1, cat2 = data_list$cat_incidence2, 
+                pop = data_list$pop_mat,
+                pop_mat = log(data_list$pop_mat / 1000000), 
+                area_mat = log(data_list$area_mat), response = data
+    ), family = "NegBin1", verbose = T, start = list(fixed = start_coef))
+  # With continuous incidence
+  hhh4_control_cont <- list(
+    end = list(f = (addSeason2formula(~1 + unvax + incid + pop_mat
+                                      , period = 365))),
+    ar = list(f = addSeason2formula(~1 + unvax  + incid + pop_mat + 
+                                      area_mat, period = 365)),
+    ne = list(f = addSeason2formula(~1 + unvax  + incid + pop_mat
+                                    , period = 365), weights = fun_wei()), 
+    data = list(unvax = log(data_list$unvax_ts), incid = data_list$incidence / 100, 
+                pop = data_list$pop_mat, pop_mat = log(data_list$pop_mat / 1000000), 
+                area_mat = log(data_list$area_mat), response = data
+    ), family = "NegBin1", verbose = T, start = list(fixed = start_coef))
+  # Run the hhh4 model
+  hhh4_thresh <- hhh4(stsObj = hhh4_sts, control = hhh4_control)
+  hhh4_cont <- hhh4(stsObj = hhh4_sts, control = hhh4_control_cont)
+  
+  return(list(hhh4_thresh, hhh4_cont))
 }

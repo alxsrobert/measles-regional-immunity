@@ -43,14 +43,14 @@ list_all_sim_reported[[1]] <- lapply(list_all_sim[[1]], function(X){
 
 model_day_tot <- 
   function_hhh4_daily(list_all_sim = list_all_sim_reported, pop_mat = pop_ts, 
-                      area_mat = area_ts, cov_mat = cov_ts, thresh = NA, 
+                      area_mat = area_ts, cov_mat = cov_ts, thresh = c(10, NA), 
                       distance_matrix = dist_mat_cent, prop_gen1 = .5, 
                       mean_si = 11.7, sd_si = 2.0, max_si = 50,
                       fun_wei = W_exp_gravity_tot)
 
 model_day_nei <- 
   function_hhh4_daily(list_all_sim = list_all_sim_reported, pop_mat = pop_ts, 
-                      area_mat = area_ts, cov_mat = cov_ts, thresh = NA, 
+                      area_mat = area_ts, cov_mat = cov_ts, thresh = c(10, NA), 
                       distance_matrix = dist_mat_nei, prop_gen1 = .5, 
                       mean_si = 11.7, sd_si = 2.0, max_si = 50,
                       fun_wei = W_exp_gravity_nei)
@@ -103,17 +103,30 @@ for(i in seq_along(regions)){
 }
 
 
+#### Impact of categories of incidence ####
+
+sens_incid_tot <- 
+  sens_incid(list_all_sim = list_all_sim_reported, pop_mat = pop_ts, 
+             area_mat = area_ts, fun_wei = W_exp_gravity_tot, prop_gen1 = .5,
+             distance_matrix = dist_mat_cent, mean_si = 11.7, sd_si = 2.0, 
+             max_si = 50, cov_mat = cov_ts)
+sens_incid_nei <- 
+  sens_incid(list_all_sim = list_all_sim_reported, pop_mat = pop_ts, 
+             area_mat = area_ts, fun_wei = W_exp_gravity_nei, prop_gen1 = .5,
+             distance_matrix = dist_mat_nei, mean_si = 11.7, sd_si = 2.0, 
+             max_si = 50, cov_mat = cov_ts)
+
 #### Sensitivity analysis serial interval ####
 
 sens_si_tot <- sens_SI(vals = seq(0, 1, .1), start_coef = fixef(model_day_tot[[1]]),
                        list_all_sim = list_all_sim_reported, pop_mat = pop_ts, 
-                       area_mat = area_ts, cov_mat = cov_ts, thresh = NA, 
+                       area_mat = area_ts, cov_mat = cov_ts, thresh = c(10, NA), 
                        distance_matrix = dist_mat_cent, mean_si = 11.7,
                        sd_si = 2.0, max_si = 50, fun_wei = W_exp_gravity_tot)
 
 sens_si_nei <- sens_SI(vals = seq(0, 1, .1), start_coef = fixef(model_day_nei[[1]]),
                        list_all_sim = list_all_sim_reported, pop_mat = pop_ts, 
-                       area_mat = area_ts, cov_mat = cov_ts, thresh = NA, 
+                       area_mat = area_ts, cov_mat = cov_ts, thresh = c(10, NA), 
                        distance_matrix = dist_mat_nei, mean_si = 11.7,
                        sd_si = 2.0, max_si = 50, fun_wei = W_exp_gravity_nei)
 
@@ -121,14 +134,14 @@ sens_si_nei <- sens_SI(vals = seq(0, 1, .1), start_coef = fixef(model_day_nei[[1
 
 sens_vax_tot <- sens_vax(n = 10, start_coef = fixef(model_day_tot[[1]]),
                          list_all_sim = list_all_sim_reported, pop_mat = pop_ts, 
-                         area_mat = area_ts, thresh = NA, prop_gen1 = .5, 
+                         area_mat = area_ts, thresh = c(10, NA), prop_gen1 = .5, 
                          distance_matrix = dist_mat_cent, mean_si = 11.7,
                          sd_si = 2.0, max_si = 50, fun_wei = W_exp_gravity_tot, 
                          corres = corres)
 
 sens_vax_nei <- sens_vax(n = 10, start_coef = fixef(model_day_nei[[1]]),
                          list_all_sim = list_all_sim_reported, pop_mat = pop_ts, 
-                         area_mat = area_ts, thresh = NA, prop_gen1 = .5,
+                         area_mat = area_ts, thresh = c(10, NA), prop_gen1 = .5,
                          distance_matrix = dist_mat_nei, mean_si = 11.7,
                          sd_si = 2.0, max_si = 50, fun_wei = W_exp_gravity_nei, 
                          corres = corres)
@@ -137,7 +150,7 @@ sens_vax_nei <- sens_vax(n = 10, start_coef = fixef(model_day_nei[[1]]),
 
 model_tot_weekday <- sens_weekday(list_all_sim = list_all_sim_reported, 
                                   pop_mat = pop_ts, area_mat = area_ts, 
-                                  cov_mat = cov_ts, thresh = NA, prop_gen1 = .5,
+                                  cov_mat = cov_ts, thresh = c(10, NA), prop_gen1 = .5,
                                   mean_si = 11.7, sd_si = 2.0, max_si = 50, 
                                   distance_matrix = dist_mat_cent, 
                                   fun_wei = W_exp_gravity_tot)
@@ -192,7 +205,7 @@ list_calib_nei <- list(calib_3_nei, calib_7_nei, calib_10_nei, calib_14_nei)
 
 models_aggre <- 
   function_hhh4_aggreg(list_all_sim = list_all_sim_reported, pop_mat = pop_ts, 
-                       area_mat = area_ts, cov_mat = cov_ts, thresh = NA, 
+                       area_mat = area_ts, cov_mat = cov_ts, thresh = c(10, NA), 
                        len_agg = 10, distance_matrix = dist_mat_cent, 
                        fun_wei = W_exp_gravity_tot)
 scores_agg <- calibration_model(model_list = models_aggre, daily = F, 
@@ -215,6 +228,8 @@ output_analysis <- list(data_rep = list_all_sim_reported[[1]][[1]],
                         sens_si_nei = sens_si_nei,
                         sens_vax_tot = sens_vax_tot,
                         sens_vax_nei = sens_vax_nei,
+                        sens_incid_tot = sens_incid_tot,
+                        sens_incid_nei = sens_incid_nei,
                         sim_loc = sim_loc,
                         sim_loc_worse = sim_loc_worse,
                         sim_loc_better = sim_loc_better,
