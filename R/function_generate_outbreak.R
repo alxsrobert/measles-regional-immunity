@@ -1,5 +1,5 @@
 generate_sim <- function(w_dens, cov, area, pop, distance_matrix, 
-                         params, start, thresh_incid = 45){
+                         params, start, thresh_incid = c(10, 45)){
   # Set up intercept of each component
   R0_ar <- rep(params["intercept_ar"], ncol(cov))
   R0_en <- rep(params["intercept_en"], ncol(cov))
@@ -115,12 +115,12 @@ generate_sim <- function(w_dens, cov, area, pop, distance_matrix,
       # Compute the number of cases per million
       incidence <- incidence / pop_i * 1000000
       incid_0 <- incid_1 <- incid_2 <- incidence * 0
-      # Region with a number of cases per million below 10 belong to cat0
-      incid_0[incidence < 10] <- 1
-      # Region with a number of cases per million 10-thresh belong to cat1
-      incid_1[incidence > 10 & incidence <= thresh_incid] <- 1
-      # Region with a number of cases per million above thresh belong to cat2
-      incid_2[incidence > thresh_incid] <- 1
+      # Region with a number of cases per million below thresh_incid[1] belong to cat0
+      incid_0[incidence < thresh_incid[1]] <- 1
+      # Region with a number of cases per million thresh_incid[1]-thresh_incid[2] belong to cat1
+      incid_1[incidence > thresh_incid[1] & incidence <= thresh_incid[2]] <- 1
+      # Region with a number of cases per million above thresh[2] belong to cat2
+      incid_2[incidence > thresh_incid[2]] <- 1
       if(any(incid_0 + incid_1 + incid_2 !=1)) stop("Problem incidence")
     }
     # Compute the value of the predictors at time_i

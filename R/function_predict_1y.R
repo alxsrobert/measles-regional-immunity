@@ -1,7 +1,7 @@
 ## Simulate lists of outbreaks
 simulation_main_figures <- function(model, n_param, n_sim_param, days, 
                                     data, pop_mat, w_dens, reg_import = NULL, 
-                                    dates_import = NULL, thresh = NA){
+                                    dates_import = NULL, thresh = c(10, NA)){
   # Total number of simulations is equal to the number of parameter sets * 
   # the number of simulation per parameter set
   n_sim <- n_param * n_sim_param 
@@ -90,14 +90,14 @@ simulation_main_figures <- function(model, n_param, n_sim_param, days,
 generate_1y_outbreak <- function(model, pop_mat, time, w_dens, n_sim, 
                                  bool_incidence, data, conditions = list(),
                                  reg_import = NULL, dates_import = NULL, 
-                                 thresh = NA){
+                                 thresh = c(10, NA)){
   # Set the dates of the observations
   date_obs <- as.Date(rownames(data))
   # Set the dates of prediction
   date_ncas <- time
   
   ## Compute threshold for incidence category
-  if(is.na(thresh)){
+  if(is.na(thresh[2])){
     
     data <- model$control$data$response
     all_dates <- as.Date(rownames(data))
@@ -119,7 +119,7 @@ generate_1y_outbreak <- function(model, pop_mat, time, w_dens, n_sim,
     # Compute the number of cases per million
     incidence <- cases_3years / pop_mat[rownames(cases_3years), ] * 1000000
     
-    thresh <- quantile(incidence, 2/3)
+    thresh[2] <- c(quantile(incidence, 2/3))
   }
   
   # Initialise the number of daily cases per region
@@ -137,9 +137,9 @@ generate_1y_outbreak <- function(model, pop_mat, time, w_dens, n_sim,
   ## Compute the category of recent incidence
   incidence_0 <- incidence_1 <- incidence_2 <- number_recent * 0
   incidence <- number_recent / pop_mat[nrow(pop_mat),] * 1000000
-  incidence_0[incidence <= 10] <- 1
-  incidence_1[incidence > 10 & incidence <= thresh] <- 1
-  incidence_2[incidence > thresh] <- 1
+  incidence_0[incidence <= thresh[1]] <- 1
+  incidence_1[incidence > thresh[1] & incidence <= thresh[2]] <- 1
+  incidence_2[incidence > thresh[2]] <- 1
   # Compute the connectivity matrix
   wji <- getNEweights(model)
   wji <- wji[,, dim(wji)[3]]

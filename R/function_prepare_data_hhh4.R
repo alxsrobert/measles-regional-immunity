@@ -19,12 +19,12 @@ prep_data <- function(data, pop_mat, area_mat, cov_mat, day, thresh,
   # Compute the number of cases per million
   incidence <- cases_3years / pop_mat[rownames(cases_3years), ] * 1000000
   
-  if(is.na(thresh)) thresh <- quantile(incidence, 2/3)
+  if(is.na(thresh[2])) thresh[2] <- quantile(incidence, 2/3)
   print(thresh)
   # Compute the three categories of incidence
   cat_incidence1 <- cat_incidence2 <- incidence * 0
-  cat_incidence1[incidence > 10 & incidence <= thresh] <- 1
-  cat_incidence2[incidence >= thresh] <- 1
+  cat_incidence1[incidence > thresh[1] & incidence <= thresh[2]] <- 1
+  cat_incidence2[incidence >= thresh[2]] <- 1
   
   # Order pop area and coverage matrices
   pop_mat_hhh4 <- pop_mat[rownames(data), colnames(data)]
@@ -59,6 +59,6 @@ prep_data <- function(data, pop_mat, area_mat, cov_mat, day, thresh,
   
   return(list(pop_mat = pop_mat_hhh4, area_mat = area_mat_hhh4,
               cat_incidence1 = cat_incidence1, cat_incidence2 = cat_incidence2, 
-              distance_matrix = distance_matrix_hhh4, 
+              incidence = incidence, distance_matrix = distance_matrix_hhh4, 
               unvax_ts = cov_mat_hhh4, previous = n_cases))
 }

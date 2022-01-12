@@ -1,6 +1,7 @@
 function_hhh4_daily <- function(pop_mat, area_mat, cov_mat, list_all_sim, 
                                 distance_matrix, prop_gen1, mean_si, sd_si,
-                                max_si, fun_wei, thresh = NA, start_coef = NULL){
+                                max_si, fun_wei, thresh = c(10, NA), start_coef = NULL,
+                                incidence = "cat"){
   # Extract the number of simulations in list_all_sim
   n_sim <- length(list_all_sim$sim)
   # intialise list of all models
@@ -47,7 +48,7 @@ function_hhh4_daily <- function(pop_mat, area_mat, cov_mat, list_all_sim,
 
 function_hhh4_aggreg <- function(pop_mat, area_mat, cov_mat, list_all_sim, 
                                  distance_matrix, prop_gen1, fun_wei, 
-                                 thresh = NA, len_agg = 10, start_coef = NULL){
+                                 thresh = c(10, NA), len_agg = 10, start_coef = NULL){
   # Extract the number of simulations in list_all_sim
   n_sim <- length(list_all_sim$sim)
   # intialise list of all models
