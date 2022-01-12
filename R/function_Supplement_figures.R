@@ -348,7 +348,7 @@ figures_sensitivity <- function(model, mat_coef, min_coef = NULL,
 }
 
 ## Plot the seasonality in the compartments of both models
-figure_s9 <- function(tot, nei){
+figure_s11 <- function(tot, nei){
   ## Extract the two seasonality coefficients for each component:
   #-in tot
   tot_cos_ar <- coef(tot)["ar.cos(2 * pi * t/365)"]
@@ -401,7 +401,7 @@ figure_s9 <- function(tot, nei){
 }
 
 # Comparison of the trajectories in the calibration
-figure_s11 <- function(list_calib_tot, list_calib_nei, model){
+figure_s13 <- function(list_calib_tot, list_calib_nei, model){
   # Compute the dates of calibration used in both list_calib objects
   dates_calib <- as.numeric(rownames(list_calib_tot[[1]]$tot))
   # Generate the number of cases in the data
@@ -446,13 +446,10 @@ figure_s11 <- function(list_calib_tot, list_calib_nei, model){
       title(xlab = "Time (days)", ylab = "Number of cases", outer = T, line = -1)
     } 
   }
-
-  
-  
 }
 
 ## Generate the proportion of cases coming from each component in the models
-figure_s12 <- function(tot, nei){
+figure_s14 <- function(tot, nei){
   ### Generate the average number of cases per component at each date
   ## In model "tot"
   tot_hhh <- meanHHH(coef(tot), terms(tot))
@@ -482,7 +479,7 @@ figure_s12 <- function(tot, nei){
 }
 
 ## Generate the spatial distribution of the latest value of the covariates
-figure_s15 <- function(pop_mat, unvax_mat, cat_incidence1, cat_incidence2, map){
+figure_s17 <- function(pop_mat, unvax_mat, cat_incidence1, cat_incidence2, map){
   # Latest value of the population matrix
   map$pop <- pop_mat[nrow(pop_mat), ][map$nuts3]
   # Put in categories
@@ -539,7 +536,7 @@ figure_s15 <- function(pop_mat, unvax_mat, cat_incidence1, cat_incidence2, map){
 }
 
 # Comparison calibration scores in daily and aggregated models
-figure_s18 <- function(scores_agg, scores_day){
+figure_s20 <- function(scores_agg, scores_day){
   # Compute the dates of calibration in the aggregated scores, so that the
   # scores are compared on the same date
   iters <- match(as.numeric(rownames(scores_agg$tot)) * 10,
@@ -578,7 +575,7 @@ figure_s18 <- function(scores_agg, scores_day){
 }
 
 # Number of cases per day of the week
-figure_s19 <- function(cases_ts){
+figure_s21 <- function(cases_ts){
   all_cases <- rep(names(rowSums(cases_ts)), rowSums(cases_ts))
   # Compute the number of cases per day
   n_day <- table(factor(weekdays(as.Date(all_cases)), 

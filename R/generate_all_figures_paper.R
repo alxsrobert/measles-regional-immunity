@@ -64,11 +64,11 @@ figure_1(data = data, mean = 11.7, sd = 2.0)
 figure_2(tot = model_tot, nei = model_nei, 
          ar_labs = c("Unvax", "Incid 1", 
                      "Incid 2", "Pop", 
-                     "Area", "Sinus", "Cosinus"),
+                     "Area", "Sine", "Cosine"),
          ne_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
-                     "Sinus", "Cosinus"), 
+                     "Sine", "Cosine"), 
          end_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
-                      "Sinus", "Cosinus"),
+                      "Sine", "Cosine"),
          other_labs = c("Distance", "Population", "Overdispersion"))
 
 # Figure 3: Geographical distribution of the predictors
@@ -114,11 +114,11 @@ figures_sensitivity(model = model_tot, mat_coef = sens_si_tot$coefs,
                     min_coef = sens_si_tot$min_coef, 
                     max_coef = sens_si_tot$max_coef,
                     ar_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
-                                "Area", "Sinus", "Cosinus"),
+                                "Area", "Sine", "Cosine"),
                     ne_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
-                                "Sinus", "Cosinus"), 
+                                "Sine", "Cosine"), 
                     end_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
-                                 "Sinus", "Cosinus"),
+                                 "Sine", "Cosine"),
                     other_labs = c("Distance", "Population", "Overdispersion"))
 
 # Figure S2: Sensitivity of the param estimates to different serial intervals
@@ -127,11 +127,11 @@ figures_sensitivity(model = model_nei, mat_coef = sens_si_nei$coefs,
                     min_coef = sens_si_nei$min_coef, 
                     max_coef = sens_si_nei$max_coef,
                     ar_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
-                                "Area", "Sinus", "Cosinus"),
+                                "Area", "Sine", "Cosine"),
                     ne_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
-                                "Sinus", "Cosinus"), 
+                                "Sine", "Cosine"), 
                     end_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
-                                 "Sinus", "Cosinus"),
+                                 "Sine", "Cosine"),
                     other_labs = c("Population", "Overdispersion"))
 
 # Figures S3, S4, S5, and S6: Figures describing the coverage beta mixed model
@@ -143,11 +143,11 @@ figures_sensitivity(model = model_tot, mat_coef = sens_vax_tot$coefs,
                     min_coef = sens_vax_tot$min_coef, 
                     max_coef = sens_vax_tot$max_coef,
                     ar_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
-                                "Area", "Sinus", "Cosinus"),
+                                "Area", "Sine", "Cosine"),
                     ne_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
-                                "Sinus", "Cosinus"), 
+                                "Sine", "Cosine"), 
                     end_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
-                                 "Sinus", "Cosinus"),
+                                 "Sine", "Cosine"),
                     other_labs = c("Distance", "Population", "Overdispersion"))
 
 # Figure S8: Sensitivity of the param estimates to different vaccine uptakes
@@ -156,27 +156,45 @@ figures_sensitivity(model = model_nei, mat_coef = sens_vax_nei$coefs,
                     min_coef = sens_vax_nei$min_coef, 
                     max_coef = sens_vax_nei$max_coef,
                     ar_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
-                                "Area", "Sinus", "Cosinus"),
+                                "Area", "Sine", "Cosine"),
                     ne_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
-                                "Sinus", "Cosinus"), 
+                                "Sine", "Cosine"), 
                     end_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
-                                 "Sinus", "Cosinus"),
+                                 "Sine", "Cosine"),
                     other_labs = c("Population", "Overdispersion"))
+# Figure S9: Parameter estimates with different incidence category threshold
+figure_2(tot = sens_incid_tot[[1]], nei = sens_incid_nei[[1]], 
+         ar_labs = c("Unvax", "Incid 1", 
+                     "Incid 2", "Pop", 
+                     "Area", "Sine", "Cosine"),
+         ne_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
+                     "Sine", "Cosine"), 
+         end_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", 
+                      "Sine", "Cosine"),
+         other_labs = c("Distance", "Population", "Overdispersion"))
 
-# Figure S9: Seasonality in both models
+# Figure S10: Parameter estimates with continuous incidence
+figure_2(tot = sens_incid_tot[[2]], nei = sens_incid_nei[[2]], 
+         ar_labs = c("Unvax", "Incid", "Pop", "Area", "Sine", "Cosine"),
+         ne_labs = c("Unvax", "Incid", "Pop", "Sine", "Cosine"), 
+         end_labs = c("Unvax", "Incid", "Pop", "Sine", "Cosine"),
+         other_labs = c("Distance", "Population", "Overdispersion"))
+
+
+# Figure S11: Seasonality in both models
 figure_s9(model_tot, model_nei)
 
-# Figure S10: Fit and calibration (Model 2)
+# Figure S12: Fit and calibration (Model 2)
 figure_4(model = model_nei, list_calib = list_calib_nei)
 
-# Figure S11: Trajectories of the calibration simulations
-figure_s11(list_calib_tot = list_calib_tot, list_calib_nei = list_calib_nei,
+# Figure S13: Trajectories of the calibration simulations
+figure_s13(list_calib_tot = list_calib_tot, list_calib_nei = list_calib_nei,
            model = model_tot)
 
-# Figure S12: Proportion per component
-figure_s12(model_tot, model_nei)
+# Figure S14: Proportion per component
+figure_s14(model_tot, model_nei)
 
-# Figure S13: 1-year-ahead simulations: impact of coverage and incidence (Model 2)
+# Figure S15: 1-year-ahead simulations: impact of coverage and incidence (Model 2)
 name_elements <- c("Coverage 2018",
                    "Coverage 2018 plus 3%",
                    "Coverage 2018 minus 3%",
@@ -187,47 +205,47 @@ p <- figure_5_6(list_sim = sim_1y_nei, model = model_nei, map = map,
                 order_reg = order_reg)
 ggsave("Output/Figure_S13.png", plot = p, width = 9, height = 12, units = "in")
 
-# Figure S14: 1-year-ahead simulations: impact of group importations (Model 2)
+# Figure S16: 1-year-ahead simulations: impact of group importations (Model 2)
 p <- figure_5_6(list_sim = sim_loc_nei, model = model_nei, map = map, 
                 which_dates = seq_along(days), breaks = breaks, labs = labs,
                 name_elements = types, thresh_cases = thresh_cases, 
                 order_reg = order_reg, import_loc = import_loc)
 ggsave("Output/Figure_S14.png", plot = p, width = 9, height = 12, units = "in")
 
-# Figure S15: Last values of the covariates
-figure_s15(map = map, 
+# Figure S17: Last values of the covariates
+figure_s17(map = map, 
            pop_mat = model_tot$control$data$pop, 
            unvax_mat = model_tot$control$data$unvax, 
            cat_incidence1 = model_tot$control$data$cat1,
            cat_incidence2 = model_tot$control$data$cat2)
 
-# Figure S16: 1-year-ahead simulations: impact of group importations (Lower coverage)
+# Figure S18: 1-year-ahead simulations: impact of group importations (Lower coverage)
 p <- figure_5_6(list_sim = sim_loc_worse, model = model_tot, map = map, 
                 which_dates = seq_along(days), breaks = breaks, labs = labs,
                 name_elements = types, thresh_cases = thresh_cases, 
                 order_reg = order_reg, import_loc = import_loc)
 ggsave("Output/Figure_S16.png", plot = p, width = 9, height = 12, units = "in")
 
-# Figure S17: 1-year-ahead simulations: impact of group importations (Higher coverage)
+# Figure S19: 1-year-ahead simulations: impact of group importations (Higher coverage)
 p <- figure_5_6(list_sim = sim_loc_better, model = model_tot, map = map, 
                 which_dates = seq_along(days), breaks = breaks, labs = labs,
                 name_elements = types, thresh_cases = thresh_cases, 
                 order_reg = order_reg, import_loc = import_loc)
 ggsave("Output/Figure_S17.png", plot = p, width = 9, height = 12, units = "in")
 
-# Figure S18: Comparison aggregated and daily scores
-figure_s18(scores_agg = scores_agg, scores_day = list_calib_tot[[3]])
+# Figure S20: Comparison aggregated and daily scores
+figure_s20(scores_agg = scores_agg, scores_day = list_calib_tot[[3]])
 
-# Figure S19: Number of cases per day of the weeks
-figure_s19(data)
+# Figure S21: Number of cases per day of the weeks
+figure_s21(data)
 
-# Figure S20: Sensitivity of the param estimates to including day of the week effect
+# Figure S22: Sensitivity of the param estimates to including day of the week effect
 figure_2(model_tot_weekday, model_tot,
          ar_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", "Area", "Weekday", 
-                     "Sinus", "Cosinus"),
-         ne_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", "Weekday", "Sinus", 
-                     "Cosinus"), 
-         end_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", "Weekday","Sinus", 
-                      "Cosinus"),
+                     "Sine", "Cosine"),
+         ne_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", "Weekday", "Sine", 
+                     "Cosine"), 
+         end_labs = c("Unvax", "Incid 1", "Incid 2", "Pop", "Weekday","Sine", 
+                      "Cosine"),
          other_labs = c("Distance", "Population", "Overdispersion"),
          legend_text = c("Model 1 + Weekday effect", "Model 1"))
