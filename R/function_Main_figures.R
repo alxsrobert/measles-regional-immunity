@@ -362,11 +362,11 @@ figure_4 <- function(model, list_calib){
   # Plot the endemic
   lines(hhh_mod$endemic %>% rowSums()~dates, col = "grey", type = "h")
   # Add the data points
-  points(y[y>0]~dates[y>0], type = "p", pch = 19, cex = .6)
+  points(y[y>0]~dates[y>0], type = "p", pch = 19, cex = .3, col = transp("black", .3))
   # Add the title
   title(xlab = "Days", ylab = "Number of cases", line = 2.5)
   legend("top", lwd = c(2,2,2,NA), bty = "n", cex = 1.5, 
-         pch = c(NA, NA, NA, 19), col = c("orange", "blue", "grey", "black"),
+         pch = c(NA, NA, NA, 19), col = c("orange", "blue", "grey", transp("black", .5)),
          legend = c("Neighbourhood component", "Autoregressive component",
                     "Endemic component", "Data"))
   mtext("A", side = 3, line = -2, adj = .1, cex = 2)
@@ -394,13 +394,14 @@ figure_4 <- function(model, list_calib){
   # Aggregated autoregressive + endemic
   ar_end_agg <- ar_agg + end_agg
   # Compute the unique dates of aggregation
+  rownames(hhh_mod$epi.own) <- rownames(model$control$data$response[-1,])
   dates <- (as.Date(rownames(hhh_mod$epi.own[which(!duplicated(group_r)),])))
   ## Plot the aggregated values
   plot(y~dates, type = "n", xlab = "", ylab = "")
   lines((tot_agg)~dates, col = "orange", lwd = 3, type = "h")
   lines((ar_end_agg)~dates, col = "blue", lwd = 3, type = "h")
   lines(end_agg~dates, col = "grey", lwd = 3, type = "h")
-  points(y[y>0]~dates[y>0], type = "p", pch = 19, cex = .6)
+  points(y[y>0]~dates[y>0], type = "p", pch = 19, cex = .3, col = transp("black", .5))
   title(xlab = "Weeks", line = 2.5)
   mtext("B", side = 3, line = -2, adj = 0.1, cex = 2)
   
@@ -415,14 +416,14 @@ figure_4 <- function(model, list_calib){
   
   # For each element of list_calib, compute and plot the PIT histograms
   for(i in seq_along(list_calib)){
-    breaks <- (0:20)/20
+    breaks <- (0:10)/10
     calib <- list_calib[[i]]
     # Compute proportion of entry in each category of the PIT histogram
     Fbar_seq_prop <- vapply(X = breaks, FUN = Fbar1, FUN.VALUE = 0,
                             Px = c(calib$px),Pxm1 = c(calib$pxm1),
                             USE.NAMES = FALSE)
     # Plot the PIT histograms
-    plot(20 * diff(Fbar_seq_prop)~breaks[-length(breaks)],
+    plot(10 * diff(Fbar_seq_prop)~breaks[-length(breaks)],
          type = "h", ylim = c(0.5, 1.5), lend = "butt", lwd = 20, col = "grey",
          ylab = "", xlab = "")
     abline(col = "red", lty = 2, h = 1)
