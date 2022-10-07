@@ -1,17 +1,17 @@
-importation_coverage <- function(corres, len_break = 1, rd_cov = F, 
+importation_coverage <- function(corres, len_break = 1, rd_cov = FALSE, 
                                  quant_cov = 0.5,
                                  reg_exc = c("FRA10", "FRA20", "FRA30", "FRA40", 
                                              "FR831", "FR832", "FR")){
   # Import coverage csv file
   cov_france <- as.data.table(read.csv2(file = paste0(
     "Data/Vacc_coverage_departement.csv"),
-    header = T, stringsAsFactors = F, sep = ",", dec = "."))
+    header = TRUE, stringsAsFactors = FALSE, sep = ",", dec = "."))
   # 2009 is missing
   colnames(cov_france) <- c("regions",
                             paste0("Year_", 2004:2008, "_1st"),
                             paste0("Year_", rep(2010:2017, each = 2), c("_1st", "_2nd")))
   # Extract values of 1st dose coverage
-  table_coverage <- cov_france[, c(1, grep("_1st", colnames(cov_france))), with = F]
+  table_coverage <- cov_france[, c(1, grep("_1st", colnames(cov_france))), with = FALSE]
   colnames(table_coverage) <- c("regions",
                                 paste0("Year_", 2004:2008),
                                 paste0("Year_", 2010:2017))
@@ -46,14 +46,14 @@ importation_coverage <- function(corres, len_break = 1, rd_cov = F,
   # Data table daily coverage
   week_cov_dens <- data.table(week = rep(all_weeks, each = nrow(corres)),
                               regions = rep(table_coverage$GeoCode, nweek),
-                              stringsAsFactors = F)
+                              stringsAsFactors = FALSE)
   setkey(week_cov_dens, week)
   
   # Infer missing values
   dt_cov <- data.table(year = rep(as.numeric(years_cov), 
                                   each = nrow(table_coverage)), 
                        region = rep(table_coverage$GeoCode, length(years_cov)),
-                       cov = unlist(c(table_coverage[, years_cov, with = F])))
+                       cov = unlist(c(table_coverage[, years_cov, with = FALSE])))
   dt_cov <- inference_coverage(corres = corres, dt_cov = dt_cov, 
                                rd_cov = rd_cov, quant_cov = quant_cov, 
                                reg_exc = reg_exc)
@@ -91,7 +91,7 @@ importation_coverage <- function(corres, len_break = 1, rd_cov = F,
   return(cov_ts)
 }
 
-inference_coverage <- function(corres, dt_cov, rd_cov = T, quant_cov = 0.5,
+inference_coverage <- function(corres, dt_cov, rd_cov = TRUE, quant_cov = 0.5,
                                reg_exc = c("FRA10", "FRA20", "FRA30", "FRA40", 
                                            "FR831", "FR832", "FR")){
   # Compute local coverage as a proportion
@@ -111,10 +111,10 @@ inference_coverage <- function(corres, dt_cov, rd_cov = T, quant_cov = 0.5,
   lmer2 <- glmmTMB(data = dt_cov[!is.element(region, reg_exc), ], 
                    family = beta_family(), 
                    cov_prop ~ 1 + year0_1p + year0_2p + 
-                     (1 + year0_1p + year0_2p | region), se = T)
+                     (1 + year0_1p + year0_2p | region), se = TRUE)
 
   # Predict the mean values of the model for the missing entries
-  preds <- predict(lmer2, se.fit = T,
+  preds <- predict(lmer2, se.fit = TRUE,
                    newdata = dt_cov[!is.element(region, reg_exc) & is.na(cov),
                                     .(region, year0_1p, year0_2p)], 
                    type = "conditional")

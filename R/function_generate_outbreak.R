@@ -156,7 +156,7 @@ generate_sim <- function(w_dens, cov, area, pop, distance_matrix,
     cases_tot <- (n_cases[diff_time,] * 
                     matrix(w_dens[length(diff_time):1], 
                            nrow = length(diff_time), ncol = ncol(n_cases), 
-                           byrow = F)) %>% colSums()
+                           byrow = FALSE)) %>% colSums()
     names(cases_tot) <- colnames(n_cases)
     # Compute the average number of new cases per component
     new_ar_av <- R0_ar_reg * cases_tot

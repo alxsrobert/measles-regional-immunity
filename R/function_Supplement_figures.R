@@ -6,13 +6,13 @@ figures_coverage <- function(corres, len_break = 1,
   # Import coverage csv file
   cov_france <- as.data.table(read.csv2(file = paste0(
     "Data/Vacc_coverage_departement.csv"),
-    header = T, stringsAsFactors = F, sep = ",", dec = "."))
+    header = TRUE, stringsAsFactors = FALSE, sep = ",", dec = "."))
   # 2009 is missing
   colnames(cov_france) <- c("regions",
                             paste0("Year_", 2004:2008, "_1st"),
                             paste0("Year_", rep(2010:2017, each = 2), c("_1st", "_2nd")))
   # Extract values of 1st dose coverage
-  table_coverage <- cov_france[, c(1, grep("_1st", colnames(cov_france))), with = F]
+  table_coverage <- cov_france[, c(1, grep("_1st", colnames(cov_france))), with = FALSE]
   colnames(table_coverage) <- c("regions",
                                 paste0("Year_", 2004:2008),
                                 paste0("Year_", 2010:2017))
@@ -47,14 +47,14 @@ figures_coverage <- function(corres, len_break = 1,
   # Data table daily coverage
   week_cov_dens <- data.table(week = rep(all_weeks, each = nrow(corres)),
                               regions = rep(table_coverage$GeoCode, nweek),
-                              stringsAsFactors = F)
+                              stringsAsFactors = FALSE)
   setkey(week_cov_dens, week)
   
   # Create a data table containing the year, region, and vaccine uptake
   dt_cov <- data.table(year = rep(as.numeric(years_cov), 
                                   each = nrow(table_coverage)), 
                        region = rep(table_coverage$GeoCode, length(years_cov)),
-                       cov = unlist(c(table_coverage[, years_cov, with = F])))
+                       cov = unlist(c(table_coverage[, years_cov, with = FALSE])))
   ## Generate S3: Show the number of missing entry per year / per region
   # Compute the number of missing entries per year
   missing_data <- dt_cov[!is.element(region, reg_exc), 
@@ -113,14 +113,14 @@ figures_coverage <- function(corres, len_break = 1,
   lmer2 <- glmmTMB(data = dt_cov[!is.element(region, reg_exc), ], 
                    family = beta_family(), 
                    cov_prop ~ 1 + year0_1p + year0_2p + 
-                     (1 + year0_1p + year0_2p | region), se = T)
+                     (1 + year0_1p + year0_2p | region), se = TRUE)
   ## Plot the typical trajectories for 3 regions
   # Randomly draw the regions to plot
   set.seed(1)
   regions_for_plot <- sample(unique(dt_cov[!is.element(region, reg_exc),
                                            region]), 3)
   # Compute the trajectory across all regions
-  pred_tot <- predict(lmer2, se.fit = T, re.form = NA,
+  pred_tot <- predict(lmer2, se.fit = TRUE, re.form = NA,
                       newdata = dt_cov[!is.element(region, reg_exc) & 
                                          !duplicated(year),
                                        .(region, year0_1p, year0_2p)])
@@ -131,7 +131,7 @@ figures_coverage <- function(corres, len_break = 1,
   max_pred <- exp(qnorm(.975, mean = pred_tot[[1]], sd = pred_tot[[2]])) /
     (1 + exp(qnorm(.975, mean = pred_tot[[1]], sd = pred_tot[[2]])))
   # Compute the trajectory for the three regions selected
-  pred_reg <- predict(lmer2, se.fit = T,
+  pred_reg <- predict(lmer2, se.fit = TRUE,
                       newdata = dt_cov[is.element(region, regions_for_plot),
                                        .(region, year0_1p, year0_2p)])
   # Compute mean prediction and 95% CIs
@@ -188,7 +188,7 @@ figures_coverage <- function(corres, len_break = 1,
   
   ## Generate diagnostic plots of the mixed-effect regression
   # Simulate values using the coefficients from the model
-  lmer2_res <- simulateResiduals(lmer2, plot = F, quantreg = F, n_sim = 1000,
+  lmer2_res <- simulateResiduals(lmer2, plot = FALSE, quantreg = FALSE, n_sim = 1000,
                                  seed = 1)
   par(mfrow = c(1,2), mar = c(5, 5, 1, 1), las = 1, bty ="l", cex.axis = 1.1,
       cex.main = 1.5, cex.lab = 1.5)
@@ -197,7 +197,7 @@ figures_coverage <- function(corres, len_break = 1,
        ylim = c(-0.1, 0.1), ylab = "Residuals", xlab = "Fitted")
   abline(h = 0, col = "red", lty = 2)
   # Panel B: QQ plots
-  plotQQunif(lmer2_res, testUniformity = F, testOutliers = F, testDispersion = F)
+  plotQQunif(lmer2_res, testUniformity = FALSE, testOutliers = FALSE, testDispersion = FALSE)
   
   # dd: Full dataset
   dd <- dt_cov[!is.na(cov) & !is.element(region, reg_exc),
@@ -269,7 +269,7 @@ figures_sensitivity <- function(model, mat_coef, min_coef = NULL,
   
   ## Plot the coefficients from the neighbourhood component
   y1 <- seq_along(ne_coef1) - .1
-  par(fig = figs[,2], mar = c(3, 5, 2, 1), las = 1, bty ="l", new = T, cex.axis = 1.2,
+  par(fig = figs[,2], mar = c(3, 5, 2, 1), las = 1, bty ="l", new = TRUE, cex.axis = 1.2,
       cex.main = 1.5, cex.lab = 1.5)
   plot(coef(model)[ne_coef1] ~ y1, pch = 16, cex = 1.5, main = "Neighbourhood", 
        ylab = "Effect", xaxt = "n", ylim = c(-.5, 1.2), col = "grey", 
@@ -295,7 +295,7 @@ figures_sensitivity <- function(model, mat_coef, min_coef = NULL,
   
   ## Plot the coefficients from the endemic component
   y1 <- seq_along(end_coef1) - .1
-  par(fig = figs[,1], mar = c(3, 5, 2, 1), las = 1, bty ="l", new = T, cex.axis = 1.2,
+  par(fig = figs[,1], mar = c(3, 5, 2, 1), las = 1, bty ="l", new = TRUE, cex.axis = 1.2,
       cex.main = 1.5, cex.lab = 1.5)
   plot(coef(model)[end_coef1] ~ y1, pch = 16, cex = 1.5, main = "Endemic", ylab = "Effect", 
        xaxt = "n", xlim = c(y1[1] - .5, rev(y1)[1] + .5), ylim = c(-1, 2), 
@@ -321,7 +321,7 @@ figures_sensitivity <- function(model, mat_coef, min_coef = NULL,
   
   ## Plot the other coefficients (gravity model and overdispersion)
   y1 <- seq_along(other1) - .1
-  par(fig = figs[,3], mar = c(3, 5, 2, 1), las = 1, bty ="l", new = T, cex.axis = 1.2,
+  par(fig = figs[,3], mar = c(3, 5, 2, 1), las = 1, bty ="l", new = TRUE, cex.axis = 1.2,
       cex.main = 1.5, cex.lab = 1.5)
   plot(coef(model)[other1] ~ y1, pch = 16, cex = 1.5, main = "Others", ylab = "Effect", 
        xaxt = "n", ylim = c(0, .8), col = "grey", 
@@ -443,7 +443,7 @@ figure_s13 <- function(list_calib_tot, list_calib_nei, model){
     if(i == 3) mtext("C: 10 days", side = 3, line = -2, adj = 0.1, cex = 2)
     if(i == 4){
       mtext("D: 14 days", side = 3, line = -2, adj = 0.1, cex = 2)
-      title(xlab = "Time (days)", ylab = "Number of cases", outer = T, line = -1)
+      title(xlab = "Time (days)", ylab = "Number of cases", outer = TRUE, line = -1)
     } 
   }
 }
@@ -469,7 +469,7 @@ figure_s14 <- function(tot, nei){
   # Plot both proportions
   par(mfrow = c(1,1), mar = c(5, 5, 1, 1), las = 1, bty ="l", cex.axis = 1.1,
       cex.main = 1.5, cex.lab = 2)
-  barplot(rbind(tot_prop, nei_prop), beside = T, col = c("blue", "purple"),
+  barplot(rbind(tot_prop, nei_prop), beside = TRUE, col = c("blue", "purple"),
           main = "Proportion of cases per component", ylab = "Percentage",
           ylim = c(0, 100))
   legend("topright", legend = c("Model 1: Spatial spread between all regions", 
@@ -484,11 +484,11 @@ figure_s17 <- function(pop_mat, unvax_mat, cat_incidence1, cat_incidence2, map){
   map$pop <- pop_mat[nrow(pop_mat), ][map$nuts3]
   # Put in categories
   map$pop_cat <- cut(map$pop, breaks = c(0, 300000, 500000, 750000, 1000000, 
-                                         max(map$pop, na.rm = T)), 
+                                         max(map$pop, na.rm = TRUE)), 
                      labels = c("70k-300k", "300k-500k", "500k-750k", "750k-1M", ">1M"))
   # Plot the population categories 
   p_cases1 <- ggplot(map)  +  geom_sf(aes(fill = pop_cat)) +
-    scale_fill_manual(na.translate = F, guide = guide_legend(),
+    scale_fill_manual(na.translate = FALSE, guide = guide_legend(),
                       values = c("#2c7bb6", "#abd9e9", "#ffffbf", "#fdae61", "#d7191c"),
                       name = "Number of inhabitants") + 
     coord_sf(ylim = c(42, 51.8), xlim = c(-4.5, 7.7)) + theme_classic(base_size = 12) + 
@@ -500,11 +500,11 @@ figure_s17 <- function(pop_mat, unvax_mat, cat_incidence1, cat_incidence2, map){
   map$cov <- 100 * (1 - exp(unvax_mat[nrow(unvax_mat), ]))[map$nuts3]
   # Put in categories
   map$cov_cat <- cut(map$cov, breaks = c(0, 80, 85, 90, 95, 
-                                         max(map$cov, na.rm = T)), 
+                                         max(map$cov, na.rm = TRUE)), 
                      labels = c("75%-80%", "80%-85%", "85%-90%", "90%-95%", ">95%"))
   # Plot the coverage categories 
   p_cases2 <- ggplot(map)  +  geom_sf(aes(fill = cov_cat)) +
-    scale_fill_manual(na.translate = F, guide = guide_legend(),
+    scale_fill_manual(na.translate = FALSE, guide = guide_legend(),
                       values = c("#2c7bb6", "#abd9e9", "#ffffbf", "#fdae61", "#d7191c"),
                       name = "Vaccine coverage") + 
     coord_sf(ylim = c(42, 51.8), xlim = c(-4.5, 7.7)) + theme_classic(base_size = 12) + 
@@ -517,13 +517,13 @@ figure_s17 <- function(pop_mat, unvax_mat, cat_incidence1, cat_incidence2, map){
     2*cat_incidence2[nrow(pop_mat), ][map$nuts3]
   # Name the categories
   map$incidence_cat <- cut(map$incidence, breaks = c(-1, 0, 1, 
-                                                     max(map$incidence, na.rm = T)), 
+                                                     max(map$incidence, na.rm = TRUE)), 
                            labels = c("No recent outbreak", 
                                       "Moderate recent transmission",
                                       "High recent transmission"))
   # Plot the incidence categories
   p_cases3 <- ggplot(map)  +  geom_sf(aes(fill = incidence_cat)) +
-    scale_fill_manual(na.translate = F, guide = guide_legend(),
+    scale_fill_manual(na.translate = FALSE, guide = guide_legend(),
                       values = c("#ffffbf", "#fdae61", "#d7191c"),
                       name = "Recent incidence") + 
     coord_sf(ylim = c(42, 51.8), xlim = c(-4.5, 7.7)) + theme_classic(base_size = 12) + 
@@ -543,7 +543,7 @@ figure_s20 <- function(scores_agg, scores_day){
                  rownames(scores_day$tot))
   
   # Define the plot layout 
-  layout_matrix <- matrix(1:4, ncol = 2, byrow = T)
+  layout_matrix <- matrix(1:4, ncol = 2, byrow = TRUE)
   layout_matrix[2,2] <- 3
   layout(layout_matrix)
   ## Plot the sharpness

@@ -25,11 +25,11 @@ all_dates_agg <- round((dates_aggreg[length(dates_aggreg) - 35:1])/10)
 
 ##### Generate the calibration scores  
 
-scores_day <- calibration_model(model_list = models_daily, daily = T, 
+scores_day <- calibration_model(model_list = models_daily, daily = TRUE, 
                                 all_dates = all_dates, w_dens = w_dens, 
-                                new_fit = T, period_pred = 10, k = 20000)
-scores_agg <- calibration_model(model_list = models_aggre, daily = F, 
-                                all_dates = all_dates_agg, new_fit = T, 
+                                new_fit = TRUE, period_pred = 10, k = 20000)
+scores_agg <- calibration_model(model_list = models_aggre, daily = FALSE, 
+                                all_dates = all_dates_agg, new_fit = TRUE, 
                                 w_dens = w_dens)
 
 saveRDS(scores_day, "Output/scores_day.RDS")

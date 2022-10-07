@@ -41,7 +41,7 @@ plot_analysis(list_all_sim = list_all_sim_reported, hhh4_day = models_daily,
                         "Neighbourhood - Incidence 1", "Endemic - Incidence 1",
                         "Autoregressive - Incidence 2", "Neighbourhood - Incidence 2",
                         "Endemic - Incidence 2", "Distance", "Population"),
-              exclude_overdisp = T)
+              exclude_overdisp = TRUE)
 
 ### Proportion in each component
 plot_prop_comp(list_all_sim = list_all_sim, hhh4_day = models_daily, 

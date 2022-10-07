@@ -21,13 +21,13 @@ simulation_main_figures <- function(model, n_param, n_sim_param, days,
                          .03)) %>% as.matrix %>% t
   unvax_better[is.na(unvax_better) | unvax_better < log(.01)] <- log(.01)
   unvax_better <- matrix(unvax_better, nrow = length(days), ncol = ncol(unvax_better),
-                         byrow = T)
+                         byrow = TRUE)
   
   # 2: Decrease the vaccination coverage in each region by 3%
   unvax_worse <- log((exp(model$control$data$unvax)[nrow(model$control$data$unvax),] +
                         .03)) %>% as.matrix %>% t
   unvax_worse <- matrix(unvax_worse, nrow = length(days), ncol = ncol(unvax_worse),
-                        byrow = T)
+                        byrow = TRUE)
   # 3: Set the level of recent incidence to minimum in each region 
   elim <- (exp(model$control$data$cat1)[nrow(model$control$data$unvax),] * 0) %>% 
     as.matrix %>% t
@@ -43,7 +43,7 @@ simulation_main_figures <- function(model, n_param, n_sim_param, days,
     set.seed(1)
     sim <- generate_1y_outbreak(model = model_iter, thresh = thresh, 
                                 pop_mat = pop_mat, time = days, w_dens = w_dens,
-                                n_sim = n_sim_param, bool_incidence = T,
+                                n_sim = n_sim_param, bool_incidence = TRUE,
                                 data = observed_sim, reg_import = reg_import,
                                 dates_import = dates_import)
     # Add these simulations to list_sim1
@@ -54,7 +54,7 @@ simulation_main_figures <- function(model, n_param, n_sim_param, days,
     sim <- generate_1y_outbreak(model = model_iter, thresh = thresh,
                                 pop_mat = pop_mat, time = days, w_dens = w_dens, 
                                 data = observed_sim, n_sim = n_sim_param, 
-                                bool_incidence = T, reg_import = reg_import,
+                                bool_incidence = TRUE, reg_import = reg_import,
                                 conditions = list(unvax = unvax_better),
                                 dates_import = dates_import)
     # Add these simulations to list_sim2
@@ -65,7 +65,7 @@ simulation_main_figures <- function(model, n_param, n_sim_param, days,
     sim <- generate_1y_outbreak(model = model_iter, thresh = thresh,
                                 pop_mat = pop_mat, time = days, w_dens = w_dens, 
                                 data = observed_sim, reg_import = reg_import, 
-                                n_sim = n_sim_param, bool_incidence = T,
+                                n_sim = n_sim_param, bool_incidence = TRUE,
                                 conditions = list(unvax = unvax_worse),
                                 dates_import = dates_import)
     # Add these simulations to list_sim3
@@ -76,7 +76,7 @@ simulation_main_figures <- function(model, n_param, n_sim_param, days,
     sim <- generate_1y_outbreak(model = model_iter, thresh = thresh,
                                 pop_mat = pop_mat, time = days, w_dens = w_dens, 
                                 data = observed_sim, reg_import = reg_import, 
-                                n_sim = n_sim_param, bool_incidence = F,
+                                n_sim = n_sim_param, bool_incidence = FALSE,
                                 dates_import = dates_import)
     # Add these simulations to list_sim4
     list_sim4[seq_len(n_sim_param) + n_sim_param * (j-1)] <- sim
@@ -128,12 +128,12 @@ generate_1y_outbreak <- function(model, pop_mat, time, w_dens, n_sim,
   colnames(n_cases) <- rep(colnames(data), n_sim)
   # Format the composite serial interval as a matrix (for each region)
   mat_w <- matrix(rev(w_dens),nrow = length(w_dens), 
-                  ncol = ncol(data), byrow = F)
+                  ncol = ncol(data), byrow = FALSE)
   ## Compute the level of recent incidence
   number_recent <- colSums(data[date_obs > (time[1] - 365*3) &
                                   date_obs < (time[1] - 30),])
   # If scenario without recent incidence, set number_recent to 0
-  if(bool_incidence == F) number_recent <- number_recent * 0
+  if(bool_incidence == FALSE) number_recent <- number_recent * 0
   ## Compute the category of recent incidence
   incidence_0 <- incidence_1 <- incidence_2 <- number_recent * 0
   incidence <- number_recent / pop_mat[nrow(pop_mat),] * 1000000
@@ -164,7 +164,7 @@ generate_1y_outbreak <- function(model, pop_mat, time, w_dens, n_sim,
   model$control$data <- lapply(model$control$data, function(X){
     if(is.matrix(X)){
       X <- matrix(X[nrow(X),], nrow = length(date_ncas),
-                  ncol = ncol(X), byrow = T)
+                  ncol = ncol(X), byrow = TRUE)
       rownames(X) <- as.character(time)
     }
     return(X)
@@ -216,7 +216,7 @@ generate_1y_outbreak <- function(model, pop_mat, time, w_dens, n_sim,
     incidence_i <- colSums(data[date_obs > (time[i] - 365*3) &
                                   date_obs < (time[i] - 30),])
     # If no recent incidence, set incidence_i to 0
-    if(bool_incidence == F) incidence_i <- incidence_i * 0
+    if(bool_incidence == FALSE) incidence_i <- incidence_i * 0
     # Compute the number of new cases per region in the simulated time steps
     new_incidence <- n_cases[date_ncas > (time[i] - 365*3) &
                                date_ncas < (time[i] - 30),]
@@ -231,7 +231,7 @@ generate_1y_outbreak <- function(model, pop_mat, time, w_dens, n_sim,
     incidence_1[incidence > 10 & incidence <= thresh] <- 1
     incidence_2[incidence > thresh] <- 1
     # Compute the transmission potential
-    if(bool_incidence == F | !is.null(reg_import)){
+    if(bool_incidence == FALSE | !is.null(reg_import)){
       FI_t <- (rbind(0 * data[date_obs >= time[i] - 50, rep(seq_len(94), n_sim)],
                      n_cases[date_ncas >= time[i] - 50 & date_ncas < time[i], ]) * 
                  mat_w[, rep(seq_len(94), n_sim)]) %>% colSums()

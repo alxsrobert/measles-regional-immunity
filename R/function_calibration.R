@@ -9,7 +9,7 @@ calibration_model <- function(model_list, daily, all_dates,
   # Initialise an array containing all samples for each day of the study period
   k_sample <- array(dim = c(period_pred, n_reg, k))
   # Matrix replicating the serial interval for each region 
-  mat_w <- matrix(rev(w_dens), nrow = length(w_dens), ncol = n_reg, byrow = F)
+  mat_w <- matrix(rev(w_dens), nrow = length(w_dens), ncol = n_reg, byrow = FALSE)
   # Initialise bias, sharpness, rps and logs matrices
   mat_bias <- array(dim = c(length(all_dates), n_reg, n_model))
   mat_shar <- array(dim = c(length(all_dates), n_reg, n_model))
@@ -43,7 +43,7 @@ calibration_model <- function(model_list, daily, all_dates,
         control$subset <- 2:date
         new_obs <- obs[1:max(control$subset),]
         new_resp <- control$data$response[1:max(control$subset),]
-        # if new_fit = T, fit the model at date 
+        # if new_fit = TRUE, fit the model at date 
         if(new_fit){
           # Use the coefficients of the last model as starting points to 
           # speed up the fitting procedure 
@@ -176,7 +176,7 @@ simulate_calib <- function(model_j, period_pred, observed, k_sample, control,
       # Draw the number of new cases in each sample
       k_sample[t,,] <- t(matrix(rnbinom(vec_cases,
                                         mu = vec_cases,size = overdisp),
-                                nrow = k, byrow = T))
+                                nrow = k, byrow = TRUE))
     }
   }
   # compute the number of cases over period_pred in each sample

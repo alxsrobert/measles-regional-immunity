@@ -26,14 +26,14 @@ figure_1 <- function(data, mean, sd, frac_no_miss = .5){
     # Multiply the number of cases at each date with the reverse SI
     cases_tot <- data[as.character(dates_t),] * 
       matrix(w_dens[length(dates_t):1], nrow = length(dates_t), 
-             ncol = ncol(data), byrow = F)
+             ncol = ncol(data), byrow = FALSE)
     # Compute n_cases at t
     n_cases[t-1,] <- colSums(cases_tot)
   }
   
   # Define the layout of the three plots (Two columns on the first row, 
   # one column on the second)
-  layout_matrix <- matrix(1:4, ncol = 2, byrow = T)
+  layout_matrix <- matrix(1:4, ncol = 2, byrow = TRUE)
   layout_matrix[2,2] <- 3
   layout(layout_matrix)
   par(mar = c(5, 5, 1, 1), las = 1, bty ="l", cex.axis = 1.1,
@@ -132,7 +132,7 @@ figure_2 <- function(tot, nei, ar_labs = NULL, ne_labs = NULL,
   # from tot model
   y1 <- seq_along(ne_coef1)
   if(!is.null(nei)) y1 <- y1 - .1
-  par(fig = figs[,2], mar = c(3, 5, 2, 1), las = 1, bty ="l", new = T, cex.axis = 1.2,
+  par(fig = figs[,2], mar = c(3, 5, 2, 1), las = 1, bty ="l", new = TRUE, cex.axis = 1.2,
       cex.main = 1.5, cex.lab = 1.5)
   plot(coef(tot)[ne_coef1] ~ y1, pch = 16, main = "", 
        ylab = "Effect", xaxt = "n", ylim = c(-.5, 1.2), col = "blue", 
@@ -162,7 +162,7 @@ figure_2 <- function(tot, nei, ar_labs = NULL, ne_labs = NULL,
   ## Plot the coefficients from the endemic component
   # from tot model
   y1 <- seq_along(end_coef1) - .1
-  par(fig = figs[,1], mar = c(3, 5, 2, 1), las = 1, bty ="l", new = T, cex.axis = 1.2,
+  par(fig = figs[,1], mar = c(3, 5, 2, 1), las = 1, bty ="l", new = TRUE, cex.axis = 1.2,
       cex.main = 1.5, cex.lab = 1.5)
   plot(coef(tot)[end_coef1] ~ y1, pch = 16, main = "", ylab = "Effect", 
        xaxt = "n", xlim = c(y1[1] - .5, rev(y1)[1] + .7), ylim = c(-1, 2), 
@@ -192,7 +192,7 @@ figure_2 <- function(tot, nei, ar_labs = NULL, ne_labs = NULL,
   ## Plot the other coefficients (gravity model and overdispersion)
   # from tot model
   y1 <- seq_along(other1) - .1
-  par(fig = figs[,3], mar = c(3, 5, 2, 1), las = 1, bty ="l", new = T, cex.axis = 1.2,
+  par(fig = figs[,3], mar = c(3, 5, 2, 1), las = 1, bty ="l", new = TRUE, cex.axis = 1.2,
       cex.main = 1.5, cex.lab = 1.5)
   plot(coef(tot)[other1] ~ y1, pch = 16, main = "", ylab = "Effect", 
        xaxt = "n", ylim = c(0, .8), col = "blue", 
@@ -252,15 +252,15 @@ figure_3 <- function(model1, model2, map){
   ][as.character(map2$nuts3)]
   # Cut in categories
   map$R_cat <- cut(map$Reff, breaks = c(-1, 5e-4, 1e-3, 5e-3,
-                                        max(map$Reff + .1, na.rm = T)), 
+                                        max(map$Reff + .1, na.rm = TRUE)), 
                    labels = c("<5e-4", "5-10e-4", "10-50e-4", ">5e-3"))
   map2$R_cat <- cut(map2$Reff, breaks = c(-1, 5e-4, 1e-3, 5e-3,
-                                          max(map2$Reff + .1, na.rm = T)), 
+                                          max(map2$Reff + .1, na.rm = TRUE)), 
                     labels = c("<5e-4", "5-10e-4", "10-50e-4", ">5e-3"))
   maptot <- rbind(map, map2)
   # Generate the ggplot of the endemic predictor
   imp_end <- ggplot(maptot) +  geom_sf(aes(fill = R_cat)) + facet_grid(model~type) +
-    scale_fill_manual(na.translate = F, guide = guide_legend(),
+    scale_fill_manual(na.translate = FALSE, guide = guide_legend(),
                       values = c("#feedde", "#fdae6b", "#e6550d", "#a63603"),
                       name = "Predictor") + 
     coord_sf(ylim = c(42, 51.8), xlim = c(-4.5, 7.7)) + theme_classic(base_size = 12) + 
@@ -283,15 +283,15 @@ figure_3 <- function(model1, model2, map){
   map2$Reff <- map2$Reff / 300
   # Cut in categories
   map$R_cat <- cut(map$Reff, breaks = c(-1, 0.25, 0.5, 1,
-                                        max(map$Reff + .1, na.rm = T)), 
+                                        max(map$Reff + .1, na.rm = TRUE)), 
                    labels = c("0-0.25", "0.25-0.5", "0.5-1", ">1"))
   map2$R_cat <- cut(map2$Reff, breaks = c(-1, 0.25, 0.5, 1,
-                                          max(map2$Reff + .1, na.rm = T)), 
+                                          max(map2$Reff + .1, na.rm = TRUE)), 
                     labels = c("0-0.25", "0.25-0.5", "0.5-1", ">1"))
   maptot <- rbind(map, map2)
   # Generate the ggplot of the neighbourhood predictor
   imp <- ggplot(maptot) +  geom_sf(aes(fill = R_cat)) + facet_grid(model~type) +
-    scale_fill_manual(na.translate = F, guide = guide_legend(),
+    scale_fill_manual(na.translate = FALSE, guide = guide_legend(),
                       values = c("#feedde", "#fdae6b", "#e6550d", "#a63603"),
                       name = "Predictor") + 
     coord_sf(ylim = c(42, 51.8), xlim = c(-4.5, 7.7)) + theme_classic(base_size = 12) + 
@@ -312,7 +312,7 @@ figure_3 <- function(model1, model2, map){
     mean_model2$end.exppred[nrow(mean_model2$ne.exppred),][map2$nuts3]
   map$type <- "Autoregressive"
   map2$type <- "Autoregressive"
-  break_vec <- c(-1, 0.65, 0.7, 0.75, max(map$Reff + .1, na.rm = T))
+  break_vec <- c(-1, 0.65, 0.7, 0.75, max(map$Reff + .1, na.rm = TRUE))
   break_lab <- c("0-0.65", "0.65-0.7", "0.7-0.75", ">0.75")
   
   # Cut in categories
@@ -323,7 +323,7 @@ figure_3 <- function(model1, model2, map){
   maptot <- rbind(map, map2)
   # Generate the ggplot of the autoregressive predictor
   in_reg_nb <- ggplot(maptot) +  geom_sf(aes(fill = R_cat)) + facet_grid(model~type) +
-    scale_fill_manual(na.translate = F, guide = guide_legend(),
+    scale_fill_manual(na.translate = FALSE, guide = guide_legend(),
                       values = c("#feedde", "#fdae6b", "#e6550d", "#a63603"),
                       name = "Predictor") + 
     coord_sf(ylim = c(42, 51.8), xlim = c(-4.5, 7.7)) + theme_classic(base_size = 12) + 
@@ -342,7 +342,7 @@ figure_4 <- function(model, list_calib){
   hhh_mod <- meanHHH(coef(model), terms(model))
   
   # Organise the plotting area
-  layout_matrix <- matrix(rep(seq_len(4), each = 2), ncol = 4, byrow = T)
+  layout_matrix <- matrix(rep(seq_len(4), each = 2), ncol = 4, byrow = TRUE)
   layout_matrix[2,] <- 3:6
   layout(layout_matrix)
   par(mar = c(5,4,1,0), las = 1, bty = "l", cex.axis = 1.1, cex.main = 1.5, 
@@ -439,7 +439,7 @@ figure_4 <- function(model, list_calib){
     if(i == 3) mtext("E: 10 days", side = 3, line = -2, adj = 0.1, cex = 2)
     if(i == 4) mtext("F: 14 days", side = 3, line = -2, adj = 0.1, cex = 2)
   }
-  title(xlab = "Probability Integral Transform", outer = T, line = - 1.5)
+  title(xlab = "Probability Integral Transform", outer = TRUE, line = - 1.5)
 }
 
 # Figure 5: 1-year-ahead simulations
@@ -452,7 +452,7 @@ figure_5_6 <- function(list_sim, model, map, which_dates, breaks,
     # Compute the number of cases per region in each simulation
     n_per_region_X <- matrix(lapply(X, function(Y)
       return(colSums(Y[which_dates,]))) %>% 
-        unlist, nrow = length(X), byrow = T)
+        unlist, nrow = length(X), byrow = TRUE)
     colnames(n_per_region_X) <- colnames(model$stsObj@observed)
     # Initialise the three maps (per element in thresh_cases)
     map_X1 <- map_X2 <- map_X3 <- map
@@ -494,7 +494,7 @@ figure_5_6 <- function(list_sim, model, map, which_dates, breaks,
   # Generate plot
   p_cases <- ggplot(map_tot) +  geom_sf(aes(fill = cat_thresh)) + 
     facet_grid(type~cat) +
-    scale_fill_manual(na.translate = F, guide = guide_legend(),
+    scale_fill_manual(na.translate = FALSE, guide = guide_legend(),
                       values = c("#2c7bb6", "#abd9e9", "#e0f3f8", 
                                  "#ffffbf", "#fdae61", "#d7191c"),
                       name = "Percentage of simulations") + 
@@ -503,7 +503,7 @@ figure_5_6 <- function(list_sim, model, map, which_dates, breaks,
     theme(axis.text.x = element_blank(), axis.text.y = element_blank(),
           strip.background = element_blank(), axis.ticks = element_blank(),  
           strip.text = element_text(size = 12),  axis.line = element_blank(), 
-          legend.position = "bottom") + guides(fill = guide_legend(byrow = T))
+          legend.position = "bottom") + guides(fill = guide_legend(byrow = TRUE))
   
   if(!is.null(import_loc)){
     map_tot$long_imp <- import_loc[as.character(map_tot$type),long]

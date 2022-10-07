@@ -89,7 +89,7 @@ plot_simulations <- function(list_all_sim, list_all_sim_reported, map,
   # Generate number of cases per region in the simulations
   p_cases <- ggplot(maptot) +  geom_sf(aes(fill = ab_cat)) + 
     facet_grid(.~type) +
-    scale_fill_manual(na.translate = F, guide = guide_legend(),
+    scale_fill_manual(na.translate = FALSE, guide = guide_legend(),
                       values = c("#2c7bb6", "#abd9e9", "#e0f3f8", 
                                  "#ffffbf", "#fdae61", "#d7191c"),
                       name = "Percentage of simulations \n with one year above threshold") + 
@@ -97,7 +97,7 @@ plot_simulations <- function(list_all_sim, list_all_sim_reported, map,
     theme(axis.text.x = element_blank(), axis.text.y = element_blank(),
           strip.background = element_blank(), strip.text = element_text(size = 12),  
           axis.ticks = element_blank(), axis.line = element_blank(), 
-          legend.position = "bottom") + guides(fill = guide_legend(byrow = T))
+          legend.position = "bottom") + guides(fill = guide_legend(byrow = TRUE))
   return(p_cases)
 }
 # Function to add transparency to colours 
@@ -156,7 +156,7 @@ pit_param <- function(list_all_sim, hhh4_runs){
   
   for (i in seq_along(hhh4_runs)){
     # Extract mean coefficients estimated in run i
-    coefs_mod <- coef(hhh4_runs[[i]], reparamPsi = F)
+    coefs_mod <- coef(hhh4_runs[[i]], reparamPsi = FALSE)
     # Extract standard deviation of the coefficients estimated in run i
     sd_mod <- hhh4_runs[[i]]$se
     # Extract the parameter set at run i
@@ -170,7 +170,7 @@ pit_param <- function(list_all_sim, hhh4_runs){
 }
 # Overall function to generate all figures
 plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot, 
-                          exclude_overdisp = T, mains = NULL){
+                          exclude_overdisp = TRUE, mains = NULL){
   # If which_plot is not numeric, match the elements to the parameter names
   if(!is.numeric(which_plot)){
     which_plot <- match(which_plot, colnames(list_all_sim$params_sim))
@@ -223,8 +223,8 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
     if(!is.null(mains)) main_i <- mains[i] else 
       main_i <- colnames(list_all_sim$params_sim)[param_i]
     # Generate density objects
-    dens_dis_day <- density(dist_day[param_i,], na.rm = T)
-    dens_dis_agg <- density(dist_agg[param_i,], na.rm = T)
+    dens_dis_day <- density(dist_day[param_i,], na.rm = TRUE)
+    dens_dis_agg <- density(dist_agg[param_i,], na.rm = TRUE)
     # Initialise empty plot
     plot(dens_dis_agg, col = "white", xlab = "", ylab = "", main = main_i, 
          ylim = c(0, max(c(dens_dis_agg$y, dens_dis_day$y))),
@@ -251,10 +251,10 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
     mean_day <- unlist(lapply(hhh4_day, function(X) return(coef(X)[param_i])))
     mean_agg <- unlist(lapply(hhh4_agg, function(X) return(coef(X)[param_i])))
     # Compute density
-    dens_day <- density(mean_day, na.rm = T)
-    dens_agg <- density(mean_agg, na.rm = T)
+    dens_day <- density(mean_day, na.rm = TRUE)
+    dens_agg <- density(mean_agg, na.rm = TRUE)
     # Compute density of the data 
-    dens_data <- density(list_all_sim$params_sim[, param_i], na.rm = T)
+    dens_data <- density(list_all_sim$params_sim[, param_i], na.rm = TRUE)
     # Initialise empty plot
     plot(dens_agg, col = "white", xlab = "", ylab = "", main = main_i, 
          ylim = c(0, max(c(dens_day$y, dens_data$y, dens_agg$y))),
@@ -272,8 +272,8 @@ plot_analysis <- function(list_all_sim, hhh4_day, hhh4_agg, CI, which_plot,
     if(i %% n_row == 0) mtext("H", side = 3, line = -2, adj = 0.1, cex = 2)
     title(ylab = "Density")
     # Generate histograms
-    hist_day <- hist(pit_i_day[param_i,], breaks = seq(0,1, .1), plot = F)
-    hist_agg <- hist(pit_i_agg[param_i,], breaks = seq(0,1, .1), plot = F)
+    hist_day <- hist(pit_i_day[param_i,], breaks = seq(0,1, .1), plot = FALSE)
+    hist_agg <- hist(pit_i_agg[param_i,], breaks = seq(0,1, .1), plot = FALSE)
     hist_day$counts <- hist_day$density
     hist_agg$counts <- hist_agg$density
     plot(hist_day, col = transp("#fc8d59", .3), ylab = "", border = NA,
@@ -326,7 +326,7 @@ plot_prop_comp <- function(list_all_sim, hhh4_day, hhh4_agg){
   # Use barplots to represent the medians, and arrows for the 95% CI
   par(mfrow = c(1,1), mar = c(5, 5, 1, 1), las = 1, bty ="l", cex.axis = 1.1,
       cex.main = 1.5, cex.lab = 2)
-  b <- barplot(rbind(med_data, med_day, med_agg), beside = T, 
+  b <- barplot(rbind(med_data, med_day, med_agg), beside = TRUE, 
                col = c("grey", "blue", "purple"),
                main = "Proportion of cases per component", ylab = "Percentage",
                ylim = c(0, 100), border = NA)

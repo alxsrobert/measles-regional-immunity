@@ -32,7 +32,7 @@ sens_vax <- function(n, list_all_sim, pop_mat, area_mat, fun_wei, corres,
                      start_coef = NULL, prop_gen1){
   
   for(i in seq_len(n)){
-    cov_mat <- importation_coverage(corres = corres, len_break = 1, rd_cov = T)
+    cov_mat <- importation_coverage(corres = corres, len_break = 1, rd_cov = TRUE)
     model_i <- function_hhh4_daily(list_all_sim = list_all_sim, 
                                    pop_mat = pop_mat, area_mat = area_mat, 
                                    cov_mat = cov_mat, thresh = thresh, 
@@ -60,7 +60,7 @@ sens_weekday <- function(list_all_sim, pop_mat, area_mat, fun_wei, prop_gen1,
   data <- list_all_sim[[1]][[1]]
   # Generate the list of data needed to run the hhh4 models
   data_list <- prep_data(data = data, pop_mat = pop_mat, 
-                         area_mat = area_mat, cov_mat = cov_mat, day = T, 
+                         area_mat = area_mat, cov_mat = cov_mat, day = TRUE, 
                          thresh = thresh, distance_matrix = distance_matrix, 
                          prop_gen1 = prop_gen1, mean_si = mean_si, 
                          sd_si = sd_si, max_si = max_si)
@@ -91,7 +91,7 @@ sens_weekday <- function(list_all_sim, pop_mat, area_mat, fun_wei, prop_gen1,
                 pop_mat = log(data_list$pop_mat / 1000000), 
                 area_mat = log(data_list$area_mat),
                 response = data
-    ), family = "NegBin1", verbose = T, start = list(fixed = start_coef))
+    ), family = "NegBin1", verbose = TRUE, start = list(fixed = start_coef))
   # Run the hhh4 model
   hhh4_run <- hhh4(stsObj = hhh4_sts, control = hhh4_control)
   return(hhh4_run)
@@ -103,7 +103,7 @@ sens_incid <- function(list_all_sim, pop_mat, area_mat, fun_wei, prop_gen1,
   data <- list_all_sim[[1]][[1]]
   # Generate the list of data needed to run the hhh4 models
   data_list <- prep_data(data = data, pop_mat = pop_mat, 
-                         area_mat = area_mat, cov_mat = cov_mat, day = T, 
+                         area_mat = area_mat, cov_mat = cov_mat, day = TRUE, 
                          thresh = c(2.5, NA), distance_matrix = distance_matrix, 
                          prop_gen1 = prop_gen1, mean_si = mean_si, 
                          sd_si = sd_si, max_si = max_si)
@@ -125,7 +125,7 @@ sens_incid <- function(list_all_sim, pop_mat, area_mat, fun_wei, prop_gen1,
                 pop = data_list$pop_mat,
                 pop_mat = log(data_list$pop_mat / 1000000), 
                 area_mat = log(data_list$area_mat), response = data
-    ), family = "NegBin1", verbose = T, start = list(fixed = start_coef))
+    ), family = "NegBin1", verbose = TRUE, start = list(fixed = start_coef))
   # With continuous incidence
   hhh4_control_cont <- list(
     end = list(f = (addSeason2formula(~1 + unvax + incid + pop_mat
@@ -137,7 +137,7 @@ sens_incid <- function(list_all_sim, pop_mat, area_mat, fun_wei, prop_gen1,
     data = list(unvax = log(data_list$unvax_ts), incid = data_list$incidence / 100, 
                 pop = data_list$pop_mat, pop_mat = log(data_list$pop_mat / 1000000), 
                 area_mat = log(data_list$area_mat), response = data
-    ), family = "NegBin1", verbose = T, start = list(fixed = start_coef))
+    ), family = "NegBin1", verbose = TRUE, start = list(fixed = start_coef))
   # Run the hhh4 model
   hhh4_thresh <- hhh4(stsObj = hhh4_sts, control = hhh4_control)
   hhh4_cont <- hhh4(stsObj = hhh4_sts, control = hhh4_control_cont)
