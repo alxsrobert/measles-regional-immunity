@@ -11,7 +11,7 @@ function_hhh4_daily <- function(pop_mat, area_mat, cov_mat, list_all_sim,
     data_i <- list_all_sim[[1]][[i]]
     # Generate the list of data needed to run the hhh4 models
     data_list <- prep_data(data = data_i, pop_mat = pop_mat, 
-                           area_mat = area_mat, cov_mat = cov_mat, day = T, 
+                           area_mat = area_mat, cov_mat = cov_mat, day = TRUE, 
                            thresh = thresh, distance_matrix = distance_matrix, 
                            prop_gen1 = prop_gen1, mean_si = mean_si, 
                            sd_si = sd_si, max_si = max_si)
@@ -36,7 +36,7 @@ function_hhh4_daily <- function(pop_mat, area_mat, cov_mat, list_all_sim,
                   pop_mat = log(data_list$pop_mat / 1000000), 
                   area_mat = log(data_list$area_mat),
                   response = data_i
-      ), family = "NegBin1", verbose = T, start = list(fixed = start_coef))
+      ), family = "NegBin1", verbose = TRUE, start = list(fixed = start_coef))
     # Run the hhh4 model
     hhh4_run <- hhh4(stsObj = hhh4_sts, control = hhh4_control)
     # Add to the list of models
@@ -72,7 +72,7 @@ function_hhh4_aggreg <- function(pop_mat, area_mat, cov_mat, list_all_sim,
     
     # Generate the list of data needed to run the hhh4 models
     data_list <- prep_data(data = aggreg_data, area_mat = area_mat, 
-                           pop_mat = pop_mat, cov_mat = cov_mat, day = F, 
+                           pop_mat = pop_mat, cov_mat = cov_mat, day = FALSE, 
                            thresh = thresh, distance_matrix = distance_matrix,
                            prop_gen1 = NULL, mean_si = NULL, 
                            sd_si = NULL, max_si = NULL)
@@ -97,7 +97,7 @@ function_hhh4_aggreg <- function(pop_mat, area_mat, cov_mat, list_all_sim,
                   pop = data_list$pop_mat,
                   pop_mat = log(data_list$pop_mat / 1000000), 
                   area_mat = log(data_list$area_mat)
-      ), family = "NegBin1", verbose = T, start = list(fixed = start_coef))
+      ), family = "NegBin1", verbose = TRUE, start = list(fixed = start_coef))
     
     # Run the hhh4 model
     hhh4_run <- hhh4(stsObj = hhh4_sts, control = hhh4_control)

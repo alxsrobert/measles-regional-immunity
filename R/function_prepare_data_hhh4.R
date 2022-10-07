@@ -49,7 +49,7 @@ prep_data <- function(data, pop_mat, area_mat, cov_mat, day, thresh,
       dates_t <- as.Date(t_i_min:(date_t-1),  origin = "1970-01-01")
       cases_tot <- data[as.character(dates_t),] * 
         matrix(w_dens[length(dates_t):1], 
-               nrow = length(dates_t), ncol = ncol(data), byrow = F)
+               nrow = length(dates_t), ncol = ncol(data), byrow = FALSE)
       
       n_cases[t-1,] <- colSums(cases_tot)
       colnames(n_cases) <- colnames(data)

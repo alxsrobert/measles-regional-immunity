@@ -27,7 +27,7 @@ set.seed(2)
 list_all_sim <- generate_all_sim(n_sim = 1, w_dens = w_dens, cov = cov_ts, 
                                  pop = pop_ts, distance_matrix = dist_mat_cent, 
                                  list_params = list_params, area = area_ts, 
-                                 rd_params = F)
+                                 rd_params = FALSE)
 
 # Apply report rate
 report <- .7
@@ -81,7 +81,7 @@ for(i in seq_along(regions)){
   reg_i <- regions[i]
   set.seed(1)
   dates_imp <- sample(x = days[days < "2018-01-01"], 
-                      size = n_import, replace = T)
+                      size = n_import, replace = TRUE)
   
   sim_i <- 
     simulation_main_figures(model = model_day_tot[[1]], n_param = 10, 
@@ -166,37 +166,37 @@ dates_calib <- which(dates_data > as.Date("2016-01-03") &
                        dates_data < as.Date("2017-12-14"))
 dates_calib_agg <- unique(trunc(dates_calib/10))
 # 3 days ahead, Model 1
-calib_3_tot <- calibration_model(model_list = model_day_tot, daily = T, 
+calib_3_tot <- calibration_model(model_list = model_day_tot, daily = TRUE, 
                                  w_dens = w_calib, all_dates = dates_calib, 
                                  period_pred = 3)
 # 7 days ahead, Model 1
-calib_7_tot <- calibration_model(model_list = model_day_tot, daily = T, 
+calib_7_tot <- calibration_model(model_list = model_day_tot, daily = TRUE, 
                                  w_dens = w_calib, all_dates = dates_calib, 
                                  period_pred = 7)
 # 10 days ahead, Model 1
-calib_10_tot <- calibration_model(model_list = model_day_tot, daily = T, 
+calib_10_tot <- calibration_model(model_list = model_day_tot, daily = TRUE, 
                                   w_dens = w_calib, all_dates = dates_calib, 
                                   period_pred = 10)
 # 14 days ahead, Model 1
-calib_14_tot <- calibration_model(model_list = model_day_tot, daily = T, 
+calib_14_tot <- calibration_model(model_list = model_day_tot, daily = TRUE, 
                                   w_dens = w_calib, all_dates = dates_calib, 
                                   period_pred = 14)
 list_calib_tot <- list(calib_3_tot, calib_7_tot, calib_10_tot, calib_14_tot)
 
 # 3 days ahead, Model 2
-calib_3_nei <- calibration_model(model_list = model_day_nei, daily = T, 
+calib_3_nei <- calibration_model(model_list = model_day_nei, daily = TRUE, 
                                  w_dens = w_calib, all_dates = dates_calib, 
                                  period_pred = 3)
 # 7 days ahead, Model 2
-calib_7_nei <- calibration_model(model_list = model_day_nei, daily = T, 
+calib_7_nei <- calibration_model(model_list = model_day_nei, daily = TRUE, 
                                  w_dens = w_calib, all_dates = dates_calib, 
                                  period_pred = 7)
 # 10 days ahead, Model 2
-calib_10_nei <- calibration_model(model_list = model_day_nei, daily = T, 
+calib_10_nei <- calibration_model(model_list = model_day_nei, daily = TRUE, 
                                   w_dens = w_calib, all_dates = dates_calib, 
                                   period_pred = 10)
 # 14 days ahead, Model 2
-calib_14_nei <- calibration_model(model_list = model_day_nei, daily = T, 
+calib_14_nei <- calibration_model(model_list = model_day_nei, daily = TRUE, 
                                   w_dens = w_calib, all_dates = dates_calib, 
                                   period_pred = 14)
 list_calib_nei <- list(calib_3_nei, calib_7_nei, calib_10_nei, calib_14_nei)
@@ -208,8 +208,8 @@ models_aggre <-
                        area_mat = area_ts, cov_mat = cov_ts, thresh = c(10, NA), 
                        len_agg = 10, distance_matrix = dist_mat_cent, 
                        fun_wei = W_exp_gravity_tot)
-scores_agg <- calibration_model(model_list = models_aggre, daily = F, 
-                                all_dates = dates_calib_agg, new_fit = T, 
+scores_agg <- calibration_model(model_list = models_aggre, daily = FALSE, 
+                                all_dates = dates_calib_agg, new_fit = TRUE, 
                                 w_dens = w_dens)
 
 

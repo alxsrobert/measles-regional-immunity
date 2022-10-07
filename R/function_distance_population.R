@@ -1,5 +1,5 @@
-importation_distance <- function(regs, neighbours = F){
-  if(neighbours == F){
+importation_distance <- function(regs, neighbours = FALSE){
+  if(neighbours == FALSE){
     ## Set distance data set (each element = distance row-column)
     # Import population centroid file, generated with function_centroid.R
     loc_centroid <- readRDS(file = "Data/location_centroids.RDS")
@@ -35,7 +35,7 @@ importation_distance <- function(regs, neighbours = F){
     unzip(temp, exdir = tempdir())
     ## Read the shapefile and create a map
     map <- sf::st_read(paste0(tempdir(), "/departements-20180101.shp"), 
-                       quiet = T)
+                       quiet = TRUE)
     map$nuts3 <- as.character(map$nuts3)
     # Fix inconsistencies between the map and nuts3 data
     map[as.character(map$code_insee) == "13", "nuts3"] <- "FR824"
@@ -64,7 +64,7 @@ importation_distance <- function(regs, neighbours = F){
 
 importation_pop_area <- function(corres, regs, all_dates){
   ## Load age stratified population
-  age <- read.csv("Data/age_structure.csv", header = T) %>% 
+  age <- read.csv("Data/age_structure.csv", header = TRUE) %>% 
     as.data.table
   # Initialise age data table containing the region, region id, year, 
   # total number of inhabitant, and surface

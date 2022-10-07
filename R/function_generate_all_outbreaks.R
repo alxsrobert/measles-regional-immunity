@@ -1,6 +1,6 @@
 generate_all_sim <- function(n_sim, w_dens, cov, area, pop, list_params,
                              distance_matrix, start = as.Date("2009-01-29"),
-                             rd_params = T){
+                             rd_params = TRUE){
   # Create a list where each element will be a matrix containing the number
   # of cases per region per day in a given simulation.
   list_sim <- vector(mode = "list", length = n_sim)
@@ -33,7 +33,7 @@ generate_all_sim <- function(n_sim, w_dens, cov, area, pop, list_params,
   
   for(i in 1:n_sim){
     # Draw the parameter sets using the covariance matrix
-    if(rd_params == F) {
+    if(rd_params == FALSE) {
       dt_params <- matrix(list_params[[1]])
     } else {
       dt_params <- list_params[[1]] + (list_params[[2]] %>% chol %>% t)%*%
@@ -70,8 +70,8 @@ generate_all_sim <- function(n_sim, w_dens, cov, area, pop, list_params,
     # Extract the final value of the endemic predictor per region
     r_fin_end[i,] <- outbreak$r0_en[nrow(outbreak$r0_en),]
     # Compute the proportion of cases coming from each component
-    all_cases <- c(AR = sum(outbreak$n_cases_ar, na.rm = T),
-                   NE = sum(outbreak$n_cases_ne, na.rm = T),
+    all_cases <- c(AR = sum(outbreak$n_cases_ar, na.rm = TRUE),
+                   NE = sum(outbreak$n_cases_ne, na.rm = TRUE),
                    EN = sum(outbreak$n_cases_en))
     prop_comp[i,] <- all_cases / sum(all_cases)
     # Extract the parameter set for this simulation

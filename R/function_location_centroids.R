@@ -16,7 +16,7 @@ function_centroids <- function(){
   unlink(temp)
   ## Read the shapefile 
   map <- sf::st_read(paste0(tempdir(), "/departements-20180101.shp"),
-                     quiet = T)
+                     quiet = TRUE)
   map$nuts3 <- as.character(map$nuts3)
   # Fix inconsistencies between the map and nuts3 data
   map[as.character(map$code_insee) == "13", "nuts3"] <- "FR824"

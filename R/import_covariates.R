@@ -22,7 +22,7 @@ source("R/function_calibration.R")
 
 # Import data table linking region nb and region id 
 corres <- data.table(read.csv2(file = "Data/nuts_to_dep.csv", sep = ",", 
-                               dec = ".", stringsAsFactors = F)[,c(2,1)])
+                               dec = ".", stringsAsFactors = FALSE)[,c(2,1)])
 colnames(corres) <- c("GeoCode", "regions")
 setkey(corres, regions)
 # Create coverage time series
@@ -30,9 +30,9 @@ cov_ts <- importation_coverage(corres = corres)
 regs <- colnames(cov_ts)
 all_dates <- as.Date(rownames(cov_ts))
 # Create distance matrix using population centroids
-dist_mat_cent <- importation_distance(regs = regs, neighbours = F)
+dist_mat_cent <- importation_distance(regs = regs, neighbours = FALSE)
 # Create distance matrix using neighbours
-dist_mat_nei <- importation_distance(regs = regs, neighbours = T)
+dist_mat_nei <- importation_distance(regs = regs, neighbours = TRUE)
 # Create population and area time series
 list_pop_area <- importation_pop_area(corres = corres, regs = regs, 
                                       all_dates = all_dates)
